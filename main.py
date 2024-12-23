@@ -10,8 +10,8 @@ def process_frame(frame, frame_count):
     if frame_count % 30 == 0:  # Check every 30 frames
         current_values, changes = monitor_dynamic_properties(cap)
 
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    corners, ids, rejected = detector.detectMarkers(gray_frame)
+    # gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    corners, ids, rejected = detector.detectMarkers(frame)
 
     print("Processing frame, number of tags found: ", len(corners) if corners is not None else 0)
 
@@ -24,10 +24,10 @@ def process_frame(frame, frame_count):
             center = corner[0].mean(axis=0).astype(int)
             cv2.putText(frame, str(ids[i][0]),
                         tuple(center),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
 
-    cv2.imshow('frame', frame)
-    cv2.imshow('frame2', gray_frame)
+    sized_down_frame = cv2.resize(frame, (1632, 1224))
+    cv2.imshow('frame', sized_down_frame)
 
 
 def print_camera_properties(cap):
@@ -51,6 +51,8 @@ def print_camera_properties(cap):
     print(f"Gain: {cap.get(cv2.CAP_PROP_GAIN)}")
     print(f"Exposure: {cap.get(cv2.CAP_PROP_EXPOSURE)}")
     print(f"Auto Exposure: {cap.get(cv2.CAP_PROP_AUTO_EXPOSURE)}")
+    print(f"Auto Focus: {cap.get(cv2.CAP_PROP_AUTOFOCUS)}")
+    print(f"Focus: {cap.get(cv2.CAP_PROP_FOCUS)}")
 
 
 def monitor_dynamic_properties(cap):
@@ -79,14 +81,24 @@ def monitor_dynamic_properties(cap):
     return current_values, changes
 
 
+#  List all available cameras
+available_cameras = []
+for i in range(10):
+    cap = cv2.VideoCapture(i)
+    if cap.isOpened():
+        available_cameras.append(i)
+        cap.release()
+print("Available cameras: ", available_cameras)
+
 cap = cv2.VideoCapture(0)
 
 cap.set(cv2.CAP_PROP_ZOOM, 50)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
-cap.set(cv2.CAP_PROP_FPS, 15)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 3264)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 2448)
+cap.set(cv2.CAP_PROP_FPS, 40)
+# cap.set(cv2.CAP_PROP_AUTOFOCUS, 1)
 cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-cap.set(cv2.CAP_PROP_FOCUS, 0)
+cap.set(cv2.CAP_PROP_FOCUS, 255)
 
 print_camera_properties(cap)
 
