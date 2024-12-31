@@ -19,13 +19,15 @@ def add_trackbars(window_name, properties, cap):
 
 
 @common.measure_time
-def process_image(image):
-    # gray_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    corners, ids, rejected = detection.aruco_detector.detectMarkers(image)
+def process_image(image, aruco_detector):
+    corners, ids, rejected = aruco_detector.detectMarkers(image)
     print("Number of tags detected: ", len(corners) if corners is not None else 0)
     cv.aruco.drawDetectedMarkers(image, corners, ids)
     common.show_in_window("image", image)
 
+
+common.run_hw_diagnostics()
+aruco_detector = detection.build_aruco_detector()
 
 camera_index = camera.pick_camera()
 cap = camera.capture(camera_index)
@@ -46,7 +48,7 @@ print("\nPress 'q' to quit, 's' to save parameters.\n")
 camera_fps = int(cap.get(cv.CAP_PROP_FPS))
 while True:
     ret, frame = cap.read()
-    process_image(frame)
+    process_image(frame, aruco_detector)
     c = cv.waitKey(1000 // camera_fps)
     if c == ord("q"):
         break

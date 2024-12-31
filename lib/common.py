@@ -1,6 +1,14 @@
 import cv2 as cv
 
 
+def run_hw_diagnostics():
+    print(f"CUDA enabled devices: {cv.cuda.getCudaEnabledDeviceCount()}")
+    print(f"OpenCL enabled devices: {cv.ocl.haveOpenCL()}")
+
+    device = cv.ocl.Device.getDefault()
+    print(f"OpenCL device: {device.name()}")
+
+
 def measure_time(func):
     def new_function(*args, **kwds):
         start = cv.getTickCount()
@@ -16,6 +24,7 @@ def init_window(name):
     cv.namedWindow(name, cv.WINDOW_NORMAL)
     cv.resizeWindow(name, 1280, 720)
 
+
 def show_in_window(name, image):
     init_window(name)
     cv.imshow(name, image)
@@ -27,4 +36,3 @@ def print_fields(params):
             value = getattr(params, attr)
             if not callable(value):  # Skip methods
                 print(f"{attr}: {value}")
-
