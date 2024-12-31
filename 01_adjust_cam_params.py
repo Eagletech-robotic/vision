@@ -18,6 +18,7 @@ def add_trackbars(window_name, properties, cap):
         cv.createTrackbar(name, "image", int(cap.get(prop)), 255, on_trackbar(prop))
 
 
+@common.measure_time
 def process_image(image):
     # gray_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     corners, ids, rejected = detection.aruco_detector.detectMarkers(image)
@@ -27,7 +28,7 @@ def process_image(image):
 
 
 camera_index = camera.pick_camera()
-cap = cv.VideoCapture(camera_index)
+cap = camera.capture(camera_index)
 
 camera.load_properties(cap, camera_index)
 add_trackbars("image", [

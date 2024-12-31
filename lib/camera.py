@@ -45,6 +45,12 @@ def pick_camera():
         exit()
 
 
+def capture(camera_index):
+    cap = cv.VideoCapture(camera_index)
+    cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+    return cap
+
+
 CAMERA_PROPERTIES = {
     cv.CAP_PROP_ZOOM: "Zoom",
     cv.CAP_PROP_FRAME_WIDTH: "Width",

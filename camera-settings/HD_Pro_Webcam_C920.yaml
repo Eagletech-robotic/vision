@@ -1,16 +1,16 @@
 properties:
   Auto Exposure: 3.0
   Auto Focus: 0.0
-  Brightness: 100.0
+  Brightness: 53.0
   Contrast: 100.0
-  Exposure: 323.0
-  FPS: 2.0
-  Focus: 100.0
+  Exposure: 333.0
+  FPS: 5.0
+  Focus: 0.0
   Format: 16.0
-  Gain: 255.0
-  Height: 1472.0
+  Gain: 8.0
+  Height: 1080.0
   Hue: -1.0
   Mode: 0.0
-  Saturation: 100.0
-  Width: 2560.0
+  Saturation: 29.0
+  Width: 1920.0
   Zoom: 100.0
