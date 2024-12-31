@@ -2,18 +2,7 @@ import cv2 as cv
 from lib import common, camera, detection
 
 
-def set_properties(cap):
-    @camera.monitor_property_changes(cap)
-    def func():
-        cap.set(cv.CAP_PROP_FRAME_WIDTH, 3264)
-        cap.set(cv.CAP_PROP_FRAME_HEIGHT, 2448)
-        cap.set(cv.CAP_PROP_FPS, 40)
-        cap.set(cv.CAP_PROP_AUTOFOCUS, 0)
-        cap.set(cv.CAP_PROP_FOCUS, 255)
-        camera.print_camera_properties(cap)
-
-
-def add_trackbars(window_name, property_names, cap):
+def add_trackbars(window_name, properties, cap):
     def on_trackbar(prop):
         def value_updated(value):
             camera.monitor_property_changes(cap)(lambda: cap.set(prop, value))
@@ -21,12 +10,12 @@ def add_trackbars(window_name, property_names, cap):
         return value_updated
 
     common.init_window(window_name)
-    for name in property_names:
-        prop = camera.CAMERA_PROPERTIES[name]
-        if not prop:
-            print(f"No property found with name {name}. Exiting.")
+    for prop in properties:
+        name = camera.CAMERA_PROPERTIES[prop]
+        if not name:
+            print(f"Unknown property {prop}. Exiting.")
             exit()
-        cv.createTrackbar(name, "image", 100, 255, on_trackbar(prop))
+        cv.createTrackbar(name, "image", int(cap.get(prop)), 255, on_trackbar(prop))
 
 
 def process_image(image):
@@ -40,10 +29,19 @@ def process_image(image):
 camera_index = camera.pick_camera()
 cap = cv.VideoCapture(camera_index)
 
-set_properties(cap)
-add_trackbars("image", ["Brightness", "Contrast", "Saturation", "Hue", "Gain", "Focus"], cap)
+camera.load_properties(cap, camera_index)
+add_trackbars("image", [
+    cv.CAP_PROP_FPS,
+    cv.CAP_PROP_BRIGHTNESS,
+    cv.CAP_PROP_CONTRAST,
+    cv.CAP_PROP_SATURATION,
+    cv.CAP_PROP_HUE,
+    cv.CAP_PROP_GAIN,
+    cv.CAP_PROP_EXPOSURE,
+    cv.CAP_PROP_FOCUS,
+], cap)
 
-print("\nPress 'q' to quit...\n")
+print("\nPress 'q' to quit, 's' to save parameters.\n")
 camera_fps = int(cap.get(cv.CAP_PROP_FPS))
 while True:
     ret, frame = cap.read()
@@ -51,6 +49,8 @@ while True:
     c = cv.waitKey(1000 // camera_fps)
     if c == ord("q"):
         break
+    elif c == ord("s"):
+        camera.save_properties(cap, camera_index)
 
 cap.release()
 cv.destroyAllWindows()
