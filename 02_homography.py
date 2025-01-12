@@ -83,14 +83,19 @@ def find_aruco_positions(image, aruco_detector, known_markers_positions, marker_
     return new_image, unknown_positions
 
 
-aruco_detector = detection.build_aruco_detector()
-image = cv.imread("assets/board_with_tags_2.jpg")
+def main():
+    aruco_detector = detection.build_aruco_detector()
+    image = cv.imread("assets/board_with_tags_2.jpg")
 
-known_markers_positions = {
-    2: (99, 78.5, 0),
-    6: (100, 180, 0),
-}
-image_with_tags, positions = find_aruco_positions(image, aruco_detector, known_markers_positions, 7)
-print(positions)
-common.show_in_window("image_with_tags", image_with_tags)
-cv.waitKey(0)
+    known_markers_positions = {
+        2: (99, 78.5, 0),
+        6: (100, 180, 0),
+    }
+    image_with_tags, positions = find_aruco_positions(image, aruco_detector, known_markers_positions, 7)
+    print(positions)
+    common.show_in_window("image_with_tags", image_with_tags)
+    cv.waitKey(0)
+
+
+if __name__ == "__main__":
+    main()

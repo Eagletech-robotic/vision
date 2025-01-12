@@ -26,34 +26,39 @@ def process_image(image, aruco_detector):
     common.show_in_window("image", image)
 
 
-common.run_hw_diagnostics()
-aruco_detector = detection.build_aruco_detector()
+def main():
+    common.run_hw_diagnostics()
+    aruco_detector = detection.build_aruco_detector()
 
-camera_index = camera.pick_camera()
-cap = camera.capture(camera_index)
+    camera_index = camera.pick_camera()
+    cap = camera.capture(camera_index)
 
-camera.load_properties(cap, camera_index)
-add_trackbars("image", [
-    cv.CAP_PROP_FPS,
-    cv.CAP_PROP_BRIGHTNESS,
-    cv.CAP_PROP_CONTRAST,
-    cv.CAP_PROP_SATURATION,
-    cv.CAP_PROP_HUE,
-    cv.CAP_PROP_GAIN,
-    cv.CAP_PROP_EXPOSURE,
-    cv.CAP_PROP_FOCUS,
-], cap)
+    camera.load_properties(cap, camera_index)
+    add_trackbars("image", [
+        cv.CAP_PROP_FPS,
+        cv.CAP_PROP_BRIGHTNESS,
+        cv.CAP_PROP_CONTRAST,
+        cv.CAP_PROP_SATURATION,
+        cv.CAP_PROP_HUE,
+        cv.CAP_PROP_GAIN,
+        cv.CAP_PROP_EXPOSURE,
+        cv.CAP_PROP_FOCUS,
+    ], cap)
 
-print("\nPress 'q' to quit, 's' to save parameters.\n")
-camera_fps = int(cap.get(cv.CAP_PROP_FPS))
-while True:
-    ret, frame = cap.read()
-    process_image(frame, aruco_detector)
-    c = cv.waitKey(1000 // camera_fps)
-    if c == ord("q"):
-        break
-    elif c == ord("s"):
-        camera.save_properties(cap, camera_index)
+    print("\nPress 'q' to quit, 's' to save parameters.\n")
+    camera_fps = int(cap.get(cv.CAP_PROP_FPS))
+    while True:
+        ret, frame = cap.read()
+        process_image(frame, aruco_detector)
+        c = cv.waitKey(1000 // camera_fps)
+        if c == ord("q"):
+            break
+        elif c == ord("s"):
+            camera.save_properties(cap, camera_index)
 
-cap.release()
-cv.destroyAllWindows()
+    cap.release()
+    cv.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()
