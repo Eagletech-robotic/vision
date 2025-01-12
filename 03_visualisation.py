@@ -1,5 +1,5 @@
 import math
-from lib.visualisation import World, Robot, Position, TinCan, Camera
+from lib.visualisation import World, Robot, Position, TinCan, Webcam
 
 
 def main():
@@ -7,8 +7,8 @@ def main():
     world = World()
 
     # Add robots
-    robot1 = Robot(Position(x=50, y=50, theta= math.radians(30)))
-    robot2 = Robot(Position(x=250, y=150, theta= math.radians(70)))
+    robot1 = Robot(Position(x=50, y=50, theta=math.radians(30)))
+    robot2 = Robot(Position(x=250, y=150, theta=math.radians(70)))
     world.add_robot(robot1)
     world.add_robot(robot2)
 
@@ -21,12 +21,12 @@ def main():
     for pos in can_positions:
         world.add_tin_can(TinCan(pos))
 
-    # Add camera
-    camera = Camera(Position(x=150, y=0, z=140, theta=math.pi / 2))
-    world.set_camera(camera)
+    # Add webcam
+    webcam = Webcam(Position(x=150, y=0, z=140, theta=math.pi / 2))
+    world.set_webcam(webcam)
 
     # Show the world
-    world.show()
+    world.draw()
 
 
 if __name__ == "__main__":

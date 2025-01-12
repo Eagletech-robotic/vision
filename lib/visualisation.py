@@ -57,24 +57,29 @@ class TinCan:
         plotter.add_mesh(can, color='silver')
 
 
-class Camera:
+class Webcam:
     def __init__(self, position: Position):
         self.position = position
 
     def draw(self, plotter: pv.Plotter):
-        camera = pv.Sphere(center=(self.position.x, self.position.y, self.position.z),
+        webcam = pv.Sphere(center=(self.position.x, self.position.y, self.position.z),
                            radius=10)
-        plotter.add_mesh(camera, color='blue')
+        plotter.add_mesh(webcam, color='blue')
 
 
 class World:
     def __init__(self):
-        self.plotter = pv.Plotter()
         self.width = 300  # 300cm
         self.length = 200  # 200cm
         self.robots = []
         self.tin_cans = []
-        self.camera = None
+        self.webcam = None
+
+        # Initialize plotter
+        self.plotter = pv.Plotter()
+        self.plotter.camera.position = (150, -400, 400)
+        self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
+        self.plotter.camera.up = (0, 0, 1)  # Z is up
 
     def add_robot(self, robot: Robot):
         self.robots.append(robot)
@@ -82,8 +87,12 @@ class World:
     def add_tin_can(self, tin_can: TinCan):
         self.tin_cans.append(tin_can)
 
-    def set_camera(self, camera: Camera):
-        self.camera = camera
+    def empty(self):
+        self.robots = []
+        self.tin_cans = []
+
+    def set_webcam(self, webcam: Webcam):
+        self.webcam = webcam
 
     def draw_ground(self):
         # Create the ground plane
@@ -111,7 +120,7 @@ class World:
             grid_lines += line
         self.plotter.add_mesh(grid_lines, color='white', line_width=2, opacity=0.8)
 
-    def update(self):
+    def draw(self):
         self.plotter.clear()
 
         self.draw_ground()
@@ -122,18 +131,7 @@ class World:
         for can in self.tin_cans:
             can.draw(self.plotter)
 
-        if self.camera:
-            self.camera.draw(self.plotter)
+        if self.webcam:
+            self.webcam.draw(self.plotter)
 
-        # Set camera position and orientation
-        camera_position = (150, -400, 400)
-        focal_point = (150, 100, 0)  # Look at center of board
-        up_direction = (0, 0, 1)  # Z is up
-
-        self.plotter.camera.position = camera_position
-        self.plotter.camera.focal_point = focal_point
-        self.plotter.camera.up = up_direction
-
-    def show(self):
-        self.update()
         self.plotter.show()
