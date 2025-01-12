@@ -2,6 +2,7 @@ import pyvista as pv
 import numpy as np
 from dataclasses import dataclass
 import math
+from enum import IntEnum
 
 
 @dataclass
@@ -12,10 +13,15 @@ class Position:
     theta: float = 0.0  # rotation around Z axis in radians
 
 
+class RobotColor(IntEnum):
+    BLUE = 0
+    YELLOW = 1
+
 class Robot:
-    def __init__(self, position: Position):
+    def __init__(self, position: Position, color: RobotColor):
         self.position = position
         self.size = 30  # 30cm cube
+        self.color = color
 
     def draw(self, plotter: pv.Plotter):
         # Cube at robot position
@@ -28,7 +34,7 @@ class Robot:
         )
         angle_deg = math.degrees(self.position.theta)
         cube.rotate_z(angle_deg, point=center, inplace=True)
-        plotter.add_mesh(cube, color='orange')
+        plotter.add_mesh(cube, color='blue' if self.color == RobotColor.BLUE else 'yellow')
 
         # Direction line
         length = self.size / 2

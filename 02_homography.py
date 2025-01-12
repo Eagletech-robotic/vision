@@ -20,17 +20,9 @@ def find_and_draw_tags(image, aruco_detector):
 
 
 @common.measure_time
-def find_aruco_positions(image, aruco_detector, known_markers_positions):
-    # Detect ArUco markers
+# Draw unknown markers with their world positions
+def draw_aruco_positions(image, corners, ids, H, known_markers_positions):
     new_image = image.copy()
-    corners, ids, rejected = aruco_detector.detectMarkers(image)
-    if ids is None:
-        return None
-
-    # Compute homography
-    H = vision.compute_homography(corners, ids, known_markers_positions)
-
-    # Draw unknown markers with their world positions
     for id, corner in zip(ids, corners):
         marker_id = id[0]
         corner = corner[0]
@@ -59,11 +51,20 @@ def main():
     aruco_detector = detection.build_aruco_detector()
     image = cv.imread("assets/board_with_tags_2.jpg")
 
+    # Detect ArUco markers
+    corners, ids, rejected = aruco_detector.detectMarkers(image)
+    if ids is None:
+        return None
+
+    # Compute homography
     known_markers_positions = {
-        2: vision.MarkerPosition(99, 78.5, 0, 7),
-        6: vision.MarkerPosition(100, 180, 0, 7),
+        2: vision.MarkerPosition(99, 78.5, 0, 7, vision.MarkerRotation.BOTTOM_LEFT),
+        6: vision.MarkerPosition(100, 180, 0, 7, vision.MarkerRotation.BOTTOM_LEFT),
     }
-    image_with_tags = find_aruco_positions(image, aruco_detector, known_markers_positions)
+    H = vision.compute_homography(corners, ids, known_markers_positions)
+
+    # Draw tags
+    image_with_tags = draw_aruco_positions(image, corners, ids, H, known_markers_positions)
     common.show_in_window("image_with_tags", image_with_tags)
     cv.waitKey(0)
 
