@@ -43,7 +43,7 @@ def main():
     aruco_detector = detection.build_aruco_detector()
 
     # Initialize world
-    world = World()
+    world = World(blocking=False)
     # webcam = Webcam(Position(x=150, y=0, z=140, theta=math.pi / 2))
     # world.set_webcam(webcam)
 
@@ -74,7 +74,7 @@ def main():
         # Add objects to the world
         add_objects(H, corners, ids, world)
 
-        # Draw the world and wait before taking the next picture
+        # Draw the world and check if the user wants to quit
         world.render()
 
         c = cv.waitKey(50)
