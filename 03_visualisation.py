@@ -1,14 +1,14 @@
 import math
-from lib.visualisation import World, Robot, Position, TinCan, Webcam
+from lib.visualisation import World, Robot, Position, TinCan, Webcam, RobotColor
 
 
 def main():
     # Create world
-    world = World()
+    world = World(blocking=True)
 
     # Add robots
-    robot1 = Robot(Position(x=50, y=50, theta=math.radians(30)))
-    robot2 = Robot(Position(x=250, y=150, theta=math.radians(70)))
+    robot1 = Robot(Position(x=50, y=50, theta=math.radians(30)), color=RobotColor.BLUE)
+    robot2 = Robot(Position(x=250, y=150, theta=math.radians(70)), color=RobotColor.YELLOW)
     world.add_robot(robot1)
     world.add_robot(robot2)
 
@@ -26,7 +26,7 @@ def main():
     world.set_webcam(webcam)
 
     # Show the world
-    world.draw()
+    world.render()
 
 
 if __name__ == "__main__":

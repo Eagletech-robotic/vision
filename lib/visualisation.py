@@ -17,6 +17,7 @@ class RobotColor(IntEnum):
     BLUE = 0
     YELLOW = 1
 
+
 class Robot:
     def __init__(self, position: Position, color: RobotColor):
         self.position = position
@@ -73,18 +74,21 @@ class Webcam:
 
 
 class World:
-    def __init__(self):
+    def __init__(self, blocking=True):
         self.width = 300  # 300cm
         self.length = 200  # 200cm
         self.robots = []
         self.tin_cans = []
         self.webcam = None
+        self.blocking = blocking
 
         # Initialize plotter
         self.plotter = pv.Plotter()
         self.plotter.camera.position = (150, -400, 400)
         self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
         self.plotter.camera.up = (0, 0, 1)  # Z is up
+        if not self.blocking:
+            self.plotter.show(interactive_update=True)
 
     def add_robot(self, robot: Robot):
         self.robots.append(robot)
@@ -125,7 +129,7 @@ class World:
             grid_lines += line
         self.plotter.add_mesh(grid_lines, color='white', line_width=2, opacity=0.8)
 
-    def draw(self):
+    def render(self):
         self.plotter.clear()
 
         self.draw_ground()
@@ -139,4 +143,10 @@ class World:
         if self.webcam:
             self.webcam.draw(self.plotter)
 
-        self.plotter.show()
+        if self.blocking:
+            self.plotter.show()
+        else:
+            self.plotter.update()
+
+    def close(self):
+        self.plotter.close()

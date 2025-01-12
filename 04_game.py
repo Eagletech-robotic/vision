@@ -47,31 +47,41 @@ def main():
     # webcam = Webcam(Position(x=150, y=0, z=140, theta=math.pi / 2))
     # world.set_webcam(webcam)
 
+    # Compute homography
+    print("Compute the homography matrix")
+    ret, image = cap.read()
+    corners, ids, rejected = aruco_detector.detectMarkers(image)
+    common.show_in_window("image", image)
+
+    known_markers_positions = {
+        vision.MarkerId.BOARD_BOTTOM_LEFT: vision.MarkerPosition(50, 50, 0, 8, vision.MarkerRotation.TOP_LEFT),
+        vision.MarkerId.BOARD_TOP_LEFT: vision.MarkerPosition(50, 150, 0, 8, vision.MarkerRotation.TOP_LEFT),
+        vision.MarkerId.BOARD_BOTTOM_RIGHT: vision.MarkerPosition(250, 50, 0, 8, vision.MarkerRotation.TOP_LEFT),
+        vision.MarkerId.BOARD_TOP_RIGHT: vision.MarkerPosition(250, 150, 0, 8, vision.MarkerRotation.TOP_LEFT),
+    }
+    H = vision.compute_homography(corners, ids, known_markers_positions)
+
     # Main loop
-    print("\nPress 'q' to quit.\n")
-    while True:
+    print("\nTo quit, select the live camera window and press 'q'.\n")
+    running = True
+
+    while running:
         # Take a picture and detect ArUco markers
         ret, image = cap.read()
         corners, ids, rejected = aruco_detector.detectMarkers(image)
-
-        # Compute homography
-        known_markers_positions = {
-            vision.MarkerId.BOARD_BOTTOM_LEFT: vision.MarkerPosition(50, 50, 0, 8, vision.MarkerRotation.TOP_LEFT),
-            vision.MarkerId.BOARD_TOP_LEFT: vision.MarkerPosition(50, 150, 0, 8, vision.MarkerRotation.TOP_LEFT),
-            vision.MarkerId.BOARD_BOTTOM_RIGHT: vision.MarkerPosition(250, 50, 0, 8, vision.MarkerRotation.TOP_LEFT),
-            vision.MarkerId.BOARD_TOP_RIGHT: vision.MarkerPosition(250, 150, 0, 8, vision.MarkerRotation.TOP_LEFT),
-        }
-        H = vision.compute_homography(corners, ids, known_markers_positions)
+        common.show_in_window("image", image)
 
         # Add objects to the world
         add_objects(H, corners, ids, world)
 
         # Draw the world and wait before taking the next picture
-        world.draw()
-        c = cv.waitKey(1000)
-        if c == ord("q"):
-            break
+        world.render()
 
+        c = cv.waitKey(50)
+        if c == ord("q"):
+            running = False
+
+    world.close()
     cap.release()
     cv.destroyAllWindows()
 
