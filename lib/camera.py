@@ -12,7 +12,7 @@ def camera_name(camera_index):
     lines = result.stdout.split("\n")
     read_value = lambda key: next(s for s in lines if f"E: {key}" in s).split("=")[-1]
 
-    return read_value("ID_MODEL")
+    return read_value("ID_MODEL") + "--" + read_value("ID_SERIAL_SHORT")
 
 
 def list_available_cameras():
@@ -109,11 +109,15 @@ def load_properties(cap, camera_index):
         cap.set(cv.CAP_PROP_AUTOFOCUS, 0)
         cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
 
-        with open(camera_settings_path(camera_index), 'r') as file:
-            settings = yaml.safe_load(file)
-        for name, value in settings["properties"].items():
-            prop = next(p for p, n in CAMERA_PROPERTIES.items() if n == name)
-            cap.set(prop, value)
+        # Return if the camera settings file does not exist
+        try:
+            with open(camera_settings_path(camera_index), 'r') as file:
+                settings = yaml.safe_load(file)
+            for name, value in settings["properties"].items():
+                prop = next(p for p, n in CAMERA_PROPERTIES.items() if n == name)
+                cap.set(prop, value)
+        except FileNotFoundError:
+            return
 
 
 def save_properties(cap, camera_index):
