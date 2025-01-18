@@ -1,6 +1,9 @@
+# ----------------
+# Draw a static world with robots, tin cans and a webcam
+# ----------------
+
 import math
 from lib.visualisation import World, Robot, Position, TinCan, Webcam, RobotColor
-
 
 def main():
     # Create world

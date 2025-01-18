@@ -1,3 +1,8 @@
+# ----------------
+# Adjust camera parameters using trackbars, and save them to a yaml file.
+# The camera view is displayed with detected ArUco markers to help optimize the parameters.
+# ----------------
+
 import cv2 as cv
 from lib import common, camera, detection
 

@@ -1,3 +1,7 @@
+# ----------------
+# Detect ArUco markers and draw the world with the detected objects.
+# ----------------
+
 import cv2 as cv
 import math
 from lib.visualisation import World, Robot, Position, TinCan, Webcam, RobotColor

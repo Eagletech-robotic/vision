@@ -1,3 +1,8 @@
+# ----------------
+# Detect ArUco markers and compute their position by homography using the known markers.
+# The positions are drawn on the image.
+# ----------------
+
 import cv2 as cv
 import numpy as np
 from lib import common, detection, vision
@@ -21,12 +26,12 @@ def find_and_draw_tags(image, aruco_detector):
 
 @common.measure_time
 # Draw unknown markers with their world positions
-def draw_aruco_positions(image, corners, ids, H, known_markers_positions):
+def draw_aruco_positions(image, corners, ids, H, known_ids):
     new_image = image.copy()
     for id, corner in zip(ids, corners):
         marker_id = id[0]
         corner = corner[0]
-        if marker_id in known_markers_positions:
+        if marker_id in known_ids:
             continue
 
         # Take center point of marker
@@ -61,10 +66,11 @@ def main():
         2: vision.MarkerPosition(99, 78.5, 0, 7, vision.MarkerRotation.BOTTOM_LEFT),
         6: vision.MarkerPosition(100, 180, 0, 7, vision.MarkerRotation.BOTTOM_LEFT),
     }
+    known_ids = list(known_markers_positions.keys())
     H = vision.compute_homography(corners, ids, known_markers_positions)
 
     # Draw tags
-    image_with_tags = draw_aruco_positions(image, corners, ids, H, known_markers_positions)
+    image_with_tags = draw_aruco_positions(image, corners, ids, H, known_ids)
     common.show_in_window("image_with_tags", image_with_tags)
     cv.waitKey(0)
 
