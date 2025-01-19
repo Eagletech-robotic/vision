@@ -110,6 +110,7 @@ def load_properties(cap, camera_index):
     def func():
         cap.set(cv.CAP_PROP_AUTOFOCUS, 0)
         cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
+        cap.set(cv.CAP_PROP_BUFFERSIZE, 1)
 
         # Return if the camera settings file does not exist
         try:

@@ -52,7 +52,6 @@ def main():
     camera_index = camera.pick_camera()
     cap = camera.capture(camera_index)
     camera.load_properties(cap, camera_index)
-    cap.set(cv.CAP_PROP_BUFFERSIZE, 1)
 
     # Define the chessboard pattern
     dictionary = cv.aruco.getPredefinedDictionary(ARUCO_DICT)
@@ -82,7 +81,7 @@ def main():
                 cv.aruco.interpolateCornersCharuco(marker_corners, marker_ids, image, board)
             cv.aruco.drawDetectedMarkers(image, marker_corners, marker_ids, borderColor=(0, 255, 0))
 
-            if ret and len(charuco_corners) >= 6:
+            if ret and len(charuco_corners) >= 6 and len(charuco_ids) == len(charuco_corners):
                 print(f"Detection {detection_nb}: {len(marker_ids)} markers, {len(charuco_ids)} charuco corners")
                 detection_nb += 1
                 all_charuco_corners.append(charuco_corners)
@@ -99,13 +98,14 @@ def main():
         if c == ord("q"):
             break
 
-    ret, camera_matrix, dist_coeffs, _rvecs, _tvecs = common.measure_time(
-        lambda:
-        cv.aruco.calibrateCameraCharuco(all_charuco_corners, all_charuco_ids, board, shape, None, None),
-        name="calibrateCameraCharuco")()
+    ret, camera_matrix, dist_coeffs, _rvecs, _tvecs, stddev_intrinsics, _stddev_extrinsics, per_view_errors = \
+        common.measure_time(
+            lambda:
+            cv.aruco.calibrateCameraCharucoExtended(all_charuco_corners, all_charuco_ids, board, shape, None, None),
+            name="calibrateCameraCharuco")()
 
     if ret:
-        print("Calibration successful")
+        print("Calibration successful. RMS error: ", per_view_errors, " - Stddev intrinsics: ", stddev_intrinsics)
         print(f"Camera matrix: {camera_matrix}")
         print(f"Distortion coefficients: {dist_coeffs}")
 
