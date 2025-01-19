@@ -9,6 +9,11 @@ def run_hw_diagnostics():
     print(f"OpenCL device: {device.name()}")
 
 
+# Example use:
+#   marker_corners, marker_ids, _ = common.measure_time(
+#       lambda:
+#       cv.aruco.detectMarkers(image, dictionary, parameters=detector_params),
+#       name="detectMarkers")()
 def measure_time(func, name=None):
     def new_function(*args, **kwds):
         start = cv.getTickCount()

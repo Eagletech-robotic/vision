@@ -20,7 +20,7 @@ def add_trackbars(window_name, properties, cap):
         if not name:
             print(f"Unknown property {prop}. Exiting.")
             exit()
-        cv.createTrackbar(name, "image", int(cap.get(prop)), 255, on_trackbar(prop))
+        cv.createTrackbar(name, "image", int(cap.get(prop)), 500, on_trackbar(prop))
 
 
 @common.measure_time

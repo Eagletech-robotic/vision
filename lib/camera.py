@@ -1,5 +1,7 @@
 import cv2 as cv
 import subprocess
+
+import numpy as np
 import yaml
 
 
@@ -120,11 +122,40 @@ def load_properties(cap, camera_index):
             return
 
 
+def load_calibration(camera_index):
+    try:
+        with open(camera_settings_path(camera_index), 'r') as file:
+            settings = yaml.safe_load(file)
+        camera_matrix = np.array(settings["camera_matrix"], dtype=np.float32)
+        dist_coeffs = np.array(settings["dist_coeffs"], dtype=np.float32)
+        return camera_matrix, dist_coeffs
+    except FileNotFoundError:
+        return None, None
+
+
 def save_properties(cap, camera_index):
     @monitor_property_changes(cap)
     def func():
-        with open(camera_settings_path(camera_index), 'w') as file:
-            settings = {
-                "properties": {name: cap.get(prop) for prop, name in CAMERA_PROPERTIES.items()}
-            }
-            yaml.dump(settings, file)
+        properties = {name: cap.get(prop) for prop, name in CAMERA_PROPERTIES.items()}
+        _update_yaml(camera_settings_path(camera_index), {"properties": properties})
+
+
+def save_calibration(camera_matrix, dist_coeffs, camera_index):
+    updates = {
+        "camera_matrix": camera_matrix.tolist(),
+        "dist_coeffs": dist_coeffs.tolist()
+    }
+    _update_yaml(camera_settings_path(camera_index), updates)
+
+
+def _update_yaml(path, updates):
+    try:
+        with open(path, 'r') as file:
+            settings = yaml.safe_load(file) or {}
+    except FileNotFoundError:
+        settings = {}
+
+    settings.update(updates)
+
+    with open(path, 'w') as file:
+        yaml.safe_dump(settings, file)
