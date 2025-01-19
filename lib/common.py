@@ -9,12 +9,12 @@ def run_hw_diagnostics():
     print(f"OpenCL device: {device.name()}")
 
 
-def measure_time(func):
+def measure_time(func, name=None):
     def new_function(*args, **kwds):
         start = cv.getTickCount()
         result = func(*args, **kwds)
         end = cv.getTickCount()
-        print("%s took %.6f seconds" % (func.__name__, (end - start) / cv.getTickFrequency()))
+        print("%s took %.6f seconds" % (name or func.__name__, (end - start) / cv.getTickFrequency()))
         return result
 
     return new_function
