@@ -15,6 +15,18 @@ def main():
     aruco_detector = detection.build_aruco_detector()
 
     known_markers_positions = {
+        vision.MarkerId.BOARD_TOP_LEFT: [
+            (55, 55, 0),
+            (55 + 10, 55, 0),
+            (55 + 10, 55 + 10, 0),
+            (55, 55 + 10, 0),
+        ],
+        vision.MarkerId.BOARD_BOTTOM_LEFT: [
+            (55, 135, 0),
+            (55 + 10, 135, 0),
+            (55 + 10, 135 + 10, 0),
+            (55, 135 + 10, 0),
+        ],
         vision.MarkerId.BOARD_TOP_RIGHT: [
             (235, 55, 0),
             (235 + 10, 55, 0),
