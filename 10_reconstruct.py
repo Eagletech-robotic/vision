@@ -7,10 +7,10 @@ from lib.visualisation import World, TinCan, Robot, RobotColor, Position
 
 def show_in_fullscreen(name, img1, img2, reconstructed):
     # Get screen resolution (adjust dynamically if needed)
-    screen_width = 1920  # Adjust based on your screen resolution
-    screen_height = 1080  # Adjust based on your screen resolution
+    screen_width = 1920
+    screen_height = 1080
     gap = 20
-    top_height = int(screen_height * 0.4)  # 40% of screen height
+    top_height = int(screen_height * 0.5) - gap // 2
 
     # Create a black canvas
     canvas = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
@@ -34,11 +34,11 @@ def show_in_fullscreen(name, img1, img2, reconstructed):
     canvas[0:top_height, x_offset_img2:x_offset_img2 + img2_resized.shape[1]] = img2_resized
 
     # Resize and center the reconstructed image
-    resized_reconstructed = resize_to_fit(reconstructed, screen_height - top_height)
+    resized_reconstructed = resize_to_fit(reconstructed, screen_height - top_height - gap)
     new_height, new_width = resized_reconstructed.shape[:2]
 
     x_offset = (screen_width - new_width) // 2
-    canvas[top_height:screen_height, x_offset:x_offset + new_width] = resized_reconstructed
+    canvas[top_height + gap:screen_height, x_offset:x_offset + new_width] = resized_reconstructed
 
     # Show in full-screen mode
     cv.namedWindow(name, cv.WND_PROP_FULLSCREEN)

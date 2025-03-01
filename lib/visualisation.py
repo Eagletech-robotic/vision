@@ -85,7 +85,8 @@ class World:
 
         # Initialize plotter
         self.plotter = pv.Plotter(off_screen=self.off_screen)
-        self.plotter.camera.position = (150, -300, -300)
+        self.plotter.window_size = (1920, 800)
+        self.plotter.camera.position = (150, -200, -200)
         self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
         self.plotter.camera.up = (0, 0, -1)  # Z is down
 
@@ -130,11 +131,6 @@ class World:
             line = pv.Line((0, y, 1), (self.width, y, 1))
             grid_lines += line
         self.plotter.add_mesh(grid_lines, color='white', line_width=2, opacity=0.8)
-
-        # Circle at (0,0)
-        # circle = pv.Circle(radius=10)
-        # circle = circle.translate((0, 0, 0))
-        # self.plotter.add_mesh(circle, color='red')
 
     def render(self):
         self.plotter.clear()
