@@ -10,9 +10,12 @@ class MarkerId(IntEnum):
     BOARD_TOP_LEFT = 20
     BOARD_TOP_RIGHT = 21
     BOARD_BOTTOM_RIGHT = 23
-    ROBOT_BLUE = 2
-    ROBOT_YELLOW = 6
-
+    ROBOT_BLUE = 2 # Legacy
+    ROBOT_YELLOW = 6 # Legacy
+    ROBOT_BLUE_1 = 1
+    ROBOT_BLUE_2 = 2
+    ROBOT_YELLOW_1 = 6
+    ROBOT_YELLOW_2 = 7
 
 class MarkerRotation(IntEnum):
     BOTTOM_LEFT = 0
