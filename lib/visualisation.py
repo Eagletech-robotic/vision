@@ -26,7 +26,7 @@ class Robot:
 
     def draw(self, plotter: pv.Plotter):
         # Cube at robot position
-        center = (self.position.x, self.position.y, self.size / 2)
+        center = (self.position.x, self.position.y, -self.size / 2)
         cube = pv.Cube(
             center=center,
             x_length=self.size,
@@ -35,15 +35,15 @@ class Robot:
         )
         angle_deg = math.degrees(self.position.theta)
         cube.rotate_z(angle_deg, point=center, inplace=True)
-        plotter.add_mesh(cube, color='blue' if self.color == RobotColor.BLUE else 'yellow')
+        plotter.add_mesh(cube, color=(255, 0, 0) if self.color == RobotColor.BLUE else (0, 255, 255))
 
         # Direction line
         length = self.size / 2
-        start = (self.position.x, self.position.y, self.size + 1)  # 1cm above cube
+        start = (self.position.x, self.position.y, -(self.size + 1))  # 1cm above cube
         end = (
             self.position.x + math.cos(self.position.theta) * length,
             self.position.y + math.sin(self.position.theta) * length,
-            self.size + 1
+            -(self.size + 1)
         )
         arrow = pv.Line(start, end)
         plotter.add_mesh(arrow, color='red')
@@ -56,7 +56,7 @@ class TinCan:
         self.height = 11.5  # tin can height
 
     def draw(self, plotter: pv.Plotter):
-        can = pv.Cylinder(center=(self.position.x, self.position.y, self.position.z + self.height / 2),
+        can = pv.Cylinder(center=(self.position.x, self.position.y, self.position.z - self.height / 2),
                           direction=(0, 0, 1),
                           radius=self.radius,
                           height=self.height)
@@ -85,9 +85,9 @@ class World:
 
         # Initialize plotter
         self.plotter = pv.Plotter(off_screen=self.off_screen)
-        self.plotter.camera.position = (150, -400, 400)
+        self.plotter.camera.position = (150, -300, -300)
         self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
-        self.plotter.camera.up = (0, 0, 1)  # Z is up
+        self.plotter.camera.up = (0, 0, -1)  # Z is down
 
         if not self.blocking and not self.off_screen:
             self.plotter.show(interactive_update=True)
@@ -130,6 +130,11 @@ class World:
             line = pv.Line((0, y, 1), (self.width, y, 1))
             grid_lines += line
         self.plotter.add_mesh(grid_lines, color='white', line_width=2, opacity=0.8)
+
+        # Circle at (0,0)
+        # circle = pv.Circle(radius=10)
+        # circle = circle.translate((0, 0, 0))
+        # self.plotter.add_mesh(circle, color='red')
 
     def render(self):
         self.plotter.clear()
