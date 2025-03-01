@@ -26,7 +26,7 @@ def main():
 
     # Add webcam
     webcam = Webcam(Position(x=150, y=0, z=140, theta=math.pi / 2))
-    world.set_webcam(webcam)
+    world.set_webcam(1, webcam)
 
     # Show the world
     world.render()

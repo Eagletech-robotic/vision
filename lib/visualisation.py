@@ -74,20 +74,22 @@ class Webcam:
 
 
 class World:
-    def __init__(self, blocking=True):
+    def __init__(self, blocking=True, off_screen=False):
         self.width = 300  # 300cm
         self.length = 200  # 200cm
         self.robots = []
         self.tin_cans = []
-        self.webcam = None
+        self.webcams = []
         self.blocking = blocking
+        self.off_screen = off_screen
 
         # Initialize plotter
-        self.plotter = pv.Plotter()
+        self.plotter = pv.Plotter(off_screen=self.off_screen)
         self.plotter.camera.position = (150, -400, 400)
         self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
         self.plotter.camera.up = (0, 0, 1)  # Z is up
-        if not self.blocking:
+
+        if not self.blocking and not self.off_screen:
             self.plotter.show(interactive_update=True)
 
     def add_robot(self, robot: Robot):
@@ -100,8 +102,8 @@ class World:
         self.robots = []
         self.tin_cans = []
 
-    def set_webcam(self, webcam: Webcam):
-        self.webcam = webcam
+    def set_webcam(self, index, webcam: Webcam):
+        self.webcams[index] = webcam
 
     def draw_ground(self):
         # Create the ground plane
@@ -131,7 +133,6 @@ class World:
 
     def render(self):
         self.plotter.clear()
-
         self.draw_ground()
 
         for robot in self.robots:
@@ -140,13 +141,17 @@ class World:
         for can in self.tin_cans:
             can.draw(self.plotter)
 
-        if self.webcam:
-            self.webcam.draw(self.plotter)
+        for webcam in self.webcams:
+            webcam.draw(self.plotter)
 
-        if self.blocking:
+        if self.off_screen:
+            return self.plotter.screenshot(return_img=True)
+        elif self.blocking:
             self.plotter.show()
+            return None
         else:
             self.plotter.update()
+            return None
 
     def close(self):
         self.plotter.close()
