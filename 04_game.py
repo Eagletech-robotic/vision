@@ -49,7 +49,7 @@ def main():
     # Initialize world
     world = World(blocking=False)
     # webcam = Webcam(Position(x=150, y=0, z=140, theta=math.pi / 2))
-    # world.set_webcam(1, webcam)
+    # world.add_webcam(1, webcam)
 
     # Compute homography
     print("Compute the homography matrix")

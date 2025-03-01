@@ -103,7 +103,7 @@ class World:
         self.robots = []
         self.tin_cans = []
 
-    def set_webcam(self, index, webcam: Webcam):
+    def add_webcam(self, index, webcam: Webcam):
         self.webcams[index] = webcam
 
     def draw_ground(self):

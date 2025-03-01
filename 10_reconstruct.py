@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 
 from lib import common, camera, detection, vision
-from lib.visualisation import World, TinCan, Robot, RobotColor, Position
+from lib.visualisation import World, TinCan, Robot, RobotColor, Position, Webcam
 
 
 def show_in_fullscreen(name, img1, img2, reconstructed):
@@ -141,58 +141,55 @@ class Stream:
         if not ret:
             return []
 
-        known_ids = [
-            vision.MarkerId.TIN_CAN,
-            vision.MarkerId.ROBOT_BLUE_1,
-            vision.MarkerId.ROBOT_BLUE_2,
-            vision.MarkerId.ROBOT_YELLOW_1,
-            vision.MarkerId.ROBOT_YELLOW_2
-        ]
-
         _world_positions = []
         for id, corner in zip(ids, corners):
             marker_id = id[0]
             corner = corner[0]
-            if marker_id not in known_ids:
-                continue
+            if (marker_id == vision.MarkerId.TIN_CAN or
+                    vision.MarkerId.ROBOT_BLUE_LO <= marker_id <= vision.MarkerId.ROBOT_BLUE_HI or
+                    vision.MarkerId.ROBOT_YELLOW_LO <= marker_id <= vision.MarkerId.ROBOT_YELLOW_HI):
+                # Take center point of marker
+                center = corner.mean(axis=0)
+                center_homogeneous = np.array([center[0], center[1], 1])
 
-            # Take center point of marker
-            center = corner.mean(axis=0)
-            center_homogeneous = np.array([center[0], center[1], 1])
+                # Apply homography
+                world_point = H @ center_homogeneous
+                world_point = world_point / world_point[2]  # Normalize homogeneous coordinates
 
-            # Apply homography
-            world_point = H @ center_homogeneous
-            world_point = world_point / world_point[2]  # Normalize homogeneous coordinates
-
-            print(f"Marker {marker_id} at {world_point}")
-            _world_positions.append((marker_id, world_point[0], world_point[1], world_point[2]))
+                print(f"Marker {marker_id} at {world_point}")
+                _world_positions.append((marker_id, world_point[0], world_point[1], world_point[2]))
 
         return _world_positions
 
 
 class Reconstruction:
-    def __init__(self, stream_1, stream_2):
-        self.stream_1 = stream_1
-        self.stream_2 = stream_2
+    def __init__(self, streams):
+        self.streams = streams
         self.world_positions = None
         self.world = World(blocking=False, off_screen=True)
 
     def run(self):
-        world_positions_1 = self.stream_1.find_world_positions()
-        world_positions_2 = self.stream_2.find_world_positions()
-        self.world_positions = world_positions_1 + world_positions_2
+        self.world_positions = sum((stream.find_world_positions() for stream in self.streams), [])
 
     def draw(self):
         self.world.empty()
+        for i, stream in enumerate(self.streams):
+            last_pose = stream.last_pose
+            if last_pose is not None:
+                camera_pos, camera_rot = last_pose
+                webcam = Webcam(Position(camera_pos[0, 0], camera_pos[1, 0], camera_pos[2, 0]))
+                self.world.add_webcam(i + 1, webcam)
+
         for marker_id, x, y, z in self.world_positions:
             if marker_id == vision.MarkerId.TIN_CAN:
                 self.world.add_tin_can(TinCan(Position(x, y)))
-            elif marker_id == vision.MarkerId.ROBOT_BLUE_1 or marker_id == vision.MarkerId.ROBOT_BLUE_2:
+            elif marker_id >= vision.MarkerId.ROBOT_BLUE_LO or marker_id <= vision.MarkerId.ROBOT_BLUE_HI:
                 robot = Robot(Position(x, y, theta=0), RobotColor.BLUE)
                 self.world.add_robot(robot)
-            elif marker_id == vision.MarkerId.ROBOT_YELLOW_1 or marker_id == vision.MarkerId.ROBOT_YELLOW_2:
+            elif marker_id >= vision.MarkerId.ROBOT_YELLOW_LO or marker_id <= vision.MarkerId.ROBOT_YELLOW_HI:
                 robot = Robot(Position(x, y, theta=0), RobotColor.YELLOW)
                 self.world.add_robot(robot)
+
         return self.world.render()
 
 
@@ -211,7 +208,7 @@ def main():
     # Initialize streams and world
     stream_1 = Stream(1, cam_index_1)
     stream_2 = Stream(2, cam_index_2)
-    reconstruction = Reconstruction(stream_1, stream_2)
+    reconstruction = Reconstruction([stream_1, stream_2])
 
     # Run reconstruction
     running = True
@@ -221,7 +218,7 @@ def main():
         reconstructed = reconstruction.draw()
         img1 = stream_1.draw()
         img2 = stream_2.draw()
-        show_in_fullscreen("Reqconstruction", img1, img2, reconstructed)
+        show_in_fullscreen("Reconstruction", img1, img2, reconstructed)
 
         c = cv.waitKey(50)
         if c == ord("q"):
