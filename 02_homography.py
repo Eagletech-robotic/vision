@@ -63,8 +63,12 @@ def main():
 
     # Compute homography
     known_markers_positions = {
-        2: vision.MarkerPosition(99, 78.5, 0, 7, vision.MarkerRotation.BOTTOM_LEFT),
-        6: vision.MarkerPosition(100, 180, 0, 7, vision.MarkerRotation.BOTTOM_LEFT),
+        vision.MarkerId.ROBOT_BLUE_2:
+            vision.convert_marker_position_to_points(
+                vision.MarkerPosition(99, 78.5, 0, 7, vision.MarkerRotation.BOTTOM_LEFT)),
+        vision.MarkerId.ROBOT_YELLOW_1:
+            vision.convert_marker_position_to_points(
+                vision.MarkerPosition(100, 180, 0, 7, vision.MarkerRotation.BOTTOM_LEFT)),
     }
     known_ids = list(known_markers_positions.keys())
     H = vision.compute_homography(corners, ids, known_markers_positions)

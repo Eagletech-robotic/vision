@@ -161,7 +161,7 @@ class Stream:
         if ids is None or len(ids) == 0:
             return []
 
-        ret , H = vision.new_compute_homography(corners, ids, known_markers_positions)
+        ret , H = vision.compute_homography(corners, ids, known_markers_positions)
         if not ret:
             return []
 

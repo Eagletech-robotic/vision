@@ -10,12 +10,13 @@ class MarkerId(IntEnum):
     BOARD_TOP_LEFT = 20
     BOARD_TOP_RIGHT = 21
     BOARD_BOTTOM_RIGHT = 23
-    ROBOT_BLUE = 2 # Legacy
-    ROBOT_YELLOW = 6 # Legacy
+    ROBOT_BLUE = 2  # Legacy
+    ROBOT_YELLOW = 6  # Legacy
     ROBOT_BLUE_1 = 1
     ROBOT_BLUE_2 = 2
     ROBOT_YELLOW_1 = 6
     ROBOT_YELLOW_2 = 7
+
 
 class MarkerRotation(IntEnum):
     BOTTOM_LEFT = 0
@@ -33,6 +34,19 @@ class MarkerPosition:
     rotation: MarkerRotation
 
 
+def convert_marker_position_to_points(marker_position: MarkerPosition):
+    points_3d = [
+        [marker_position.x - marker_position.size / 2, marker_position.y - marker_position.size / 2, 0],  # Bottom Left
+        [marker_position.x - marker_position.size / 2, marker_position.y + marker_position.size / 2, 0],  # Top Left
+        [marker_position.x + marker_position.size / 2, marker_position.y + marker_position.size / 2, 0],  # Top Right
+        [marker_position.x + marker_position.size / 2, marker_position.y - marker_position.size / 2, 0]  # Bottom Right
+    ]
+    rotation_steps = int(marker_position.rotation)
+    if rotation_steps > 0:
+        points_3d = points_3d[rotation_steps:] + points_3d[:rotation_steps]
+    return np.array(points_3d)
+
+
 def compute_homography(corners, ids, known_markers_positions):
     # Separate known and unknown markers
     known_corners = []
@@ -46,26 +60,19 @@ def compute_homography(corners, ids, known_markers_positions):
 
         # Get 3D points of known marker
         known_corners.extend(corner)
-        pos = known_markers_positions[marker_id]
-
-        points_3d = [
-            [pos.x - pos.size / 2, pos.y - pos.size / 2, 0],  # Bottom Left
-            [pos.x - pos.size / 2, pos.y + pos.size / 2, 0],  # Top Left
-            [pos.x + pos.size / 2, pos.y + pos.size / 2, 0],  # Top Right
-            [pos.x + pos.size / 2, pos.y - pos.size / 2, 0]  # Bottom Right
-        ]
-        rotation_steps = int(pos.rotation)
-        if rotation_steps > 0:
-            points_3d = points_3d[rotation_steps:] + points_3d[:rotation_steps]
+        points_3d = known_markers_positions[marker_id]
         known_points_3d.extend(points_3d)
 
     # Convert to numpy arrays
     known_corners = np.array(known_corners)
     known_points_3d = np.array(known_points_3d)
 
+    if len(known_corners) < 4:
+        return False, None
+
     # Compute homography
     H, _ = cv.findHomography(known_corners, known_points_3d[:, :2])
-    return H
+    return True, H
 
 
 def estimate_pose(corners, ids, known_markers_positions, camera_matrix, dist_coeffs):

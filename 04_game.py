@@ -58,10 +58,14 @@ def main():
     common.show_in_window("image", image)
 
     known_markers_positions = {
-        vision.MarkerId.BOARD_BOTTOM_LEFT: vision.MarkerPosition(50, 50, 0, 8, vision.MarkerRotation.TOP_LEFT),
-        vision.MarkerId.BOARD_TOP_LEFT: vision.MarkerPosition(50, 150, 0, 8, vision.MarkerRotation.TOP_LEFT),
-        vision.MarkerId.BOARD_BOTTOM_RIGHT: vision.MarkerPosition(250, 50, 0, 8, vision.MarkerRotation.TOP_LEFT),
-        vision.MarkerId.BOARD_TOP_RIGHT: vision.MarkerPosition(250, 150, 0, 8, vision.MarkerRotation.TOP_LEFT),
+        vision.MarkerId.BOARD_BOTTOM_LEFT: vision.convert_marker_position_to_points(
+            vision.MarkerPosition(50, 50, 0, 8, vision.MarkerRotation.TOP_LEFT)),
+        vision.MarkerId.BOARD_TOP_LEFT: vision.convert_marker_position_to_points(
+            vision.MarkerPosition(50, 150, 0, 8, vision.MarkerRotation.TOP_LEFT)),
+        vision.MarkerId.BOARD_BOTTOM_RIGHT: vision.convert_marker_position_to_points(
+            vision.MarkerPosition(250, 50, 0, 8, vision.MarkerRotation.TOP_LEFT)),
+        vision.MarkerId.BOARD_TOP_RIGHT: vision.convert_marker_position_to_points(
+            vision.MarkerPosition(250, 150, 0, 8, vision.MarkerRotation.TOP_LEFT)),
     }
     H = vision.compute_homography(corners, ids, known_markers_positions)
 
