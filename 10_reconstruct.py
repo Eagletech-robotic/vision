@@ -5,70 +5,45 @@ from lib import common, camera, detection, vision
 from lib.visualisation import World, TinCan, Robot, RobotColor, Position
 
 
-def show_in_fullscreen(name, img1, img2, reconstructed, gap=20):
+def show_in_fullscreen(name, img1, img2, reconstructed):
     # Get screen resolution (adjust dynamically if needed)
     screen_width = 1920  # Adjust based on your screen resolution
     screen_height = 1080  # Adjust based on your screen resolution
-
-    # Compute height for top row (40%) and bottom row (60%)
+    gap = 20
     top_height = int(screen_height * 0.4)  # 40% of screen height
-    bottom_available_height = screen_height - top_height  # Remaining height for bottom image
 
-    # Resize img1 and img2 while preserving aspect ratio
-    def resize_to_fit(img, max_height):
-        """Resizes an image to fit within the given max height while maintaining aspect ratio."""
+    # Create a black canvas
+    canvas = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
+
+    # Resize image while preserving aspect ratio
+    def resize_to_fit(img, height):
         h, w = img.shape[:2]
         aspect_ratio = w / h
-        new_height = max_height
-        new_width = int(new_height * aspect_ratio)
-        return cv.resize(img, (new_width, new_height))
+        width = int(height * aspect_ratio)
+        return cv.resize(img, (width, height))
 
+    # Resize and center stream images
     img1_resized = resize_to_fit(img1, top_height)
     img2_resized = resize_to_fit(img2, top_height)
 
-    # Determine total width of top row including gap
     top_row_width = img1_resized.shape[1] + img2_resized.shape[1] + gap
-
-    # Create a black canvas for the top row
-    top_row = np.zeros((top_height, screen_width, 3), dtype=np.uint8)
-
-    # Center the images in the top row with a gap between them
     x_offset_img1 = (screen_width - top_row_width) // 2
     x_offset_img2 = x_offset_img1 + img1_resized.shape[1] + gap
 
-    top_row[:, x_offset_img1:x_offset_img1 + img1_resized.shape[1]] = img1_resized
-    top_row[:, x_offset_img2:x_offset_img2 + img2_resized.shape[1]] = img2_resized
+    canvas[0:top_height, x_offset_img1:x_offset_img1 + img1_resized.shape[1]] = img1_resized
+    canvas[0:top_height, x_offset_img2:x_offset_img2 + img2_resized.shape[1]] = img2_resized
 
-    # Resize reconstructed image while preserving aspect ratio
-    h, w = reconstructed.shape[:2]
-    aspect_ratio = w / h
+    # Resize and center the reconstructed image
+    resized_reconstructed = resize_to_fit(reconstructed, screen_height - top_height)
+    new_height, new_width = resized_reconstructed.shape[:2]
 
-    new_width = screen_width  # Fit full width
-    new_height = int(new_width / aspect_ratio)  # Maintain aspect ratio
-
-    # Ensure it doesn't exceed the available bottom space
-    if new_height > bottom_available_height:
-        new_height = bottom_available_height
-        new_width = int(new_height * aspect_ratio)
-
-    # Resize the reconstructed image
-    resized_reconstructed = cv.resize(reconstructed, (new_width, new_height))
-
-    # Create a black canvas for the bottom row
-    bottom_row = np.zeros((bottom_available_height, screen_width, 3), dtype=np.uint8)
-
-    # Center the reconstructed image in the bottom row
-    y_offset = (bottom_available_height - new_height) // 2
     x_offset = (screen_width - new_width) // 2
-    bottom_row[y_offset:y_offset + new_height, x_offset:x_offset + new_width] = resized_reconstructed
-
-    # Stack both parts together
-    final_display = np.vstack([top_row, bottom_row])
+    canvas[top_height:screen_height, x_offset:x_offset + new_width] = resized_reconstructed
 
     # Show in full-screen mode
     cv.namedWindow(name, cv.WND_PROP_FULLSCREEN)
     cv.setWindowProperty(name, cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
-    cv.imshow(name, final_display)
+    cv.imshow(name, canvas)
 
 
 known_markers_positions = {
@@ -153,7 +128,8 @@ class Stream:
                 cv.drawContours(image, corner.astype(int), -1, (0, 0, 255), 4)
                 cv.circle(image, corner[0][0].astype(int), 8, (0, 0, 255), 8)
                 cv.circle(image, corner[0][1].astype(int), 6, (0, 0, 255), 2)
-                cv.putText(image, str(id[0]), tuple(corner[0][0].astype(int)), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 5)
+                cv.putText(image, str(id[0]), tuple(corner[0][0].astype(int)), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255),
+                           5)
         return image
 
     def world_positions(self):
@@ -161,7 +137,7 @@ class Stream:
         if ids is None or len(ids) == 0:
             return []
 
-        ret , H = vision.compute_homography(corners, ids, known_markers_positions)
+        ret, H = vision.compute_homography(corners, ids, known_markers_positions)
         if not ret:
             return []
 
@@ -214,7 +190,7 @@ class Reconstruction:
                 robot = Robot(Position(x, y, theta=0), RobotColor.BLUE)
                 world.add_robot(robot)
             elif marker_id == vision.MarkerId.ROBOT_YELLOW_1 or marker_id == vision.MarkerId.ROBOT_YELLOW_2:
-                robot = Robot(Position(x, y, theta=180), RobotColor.YELLOW)
+                robot = Robot(Position(x, y, theta=0), RobotColor.YELLOW)
                 world.add_robot(robot)
         return world.render()
 
