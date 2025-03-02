@@ -121,6 +121,20 @@ class World:
         self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
         self.plotter.camera.up = (0, 0, -1)  # Z is down
 
+        # Load the ground plane's texture
+        self.plane = pv.Plane(center=(self.width / 2, self.length / 2, 0),
+                              direction=(0, 0, 1),
+                              i_size=self.width,
+                              j_size=self.length)
+        try:
+            tex = pv.read_texture('assets/playmat.png')
+            self.plane.texture_map_to_plane(inplace=True)
+            self.plane.point_data["Texture Coordinates"] *= [-1,
+                                                             -1]  # Flip UV mapping, as we look from reverse side (z<0)
+            self.plane.active_texture = tex
+        except Exception as e:
+            print(f"Error loading texture: {e}")
+
         if not self.blocking and not self.off_screen:
             self.plotter.show(interactive_update=True)
 
@@ -138,21 +152,7 @@ class World:
         self.webcams[index] = webcam
 
     def draw_ground(self):
-        # Create the ground plane
-        plane = pv.Plane(center=(self.width / 2, self.length / 2, 0),
-                         direction=(0, 0, 1),
-                         i_size=self.width,
-                         j_size=self.length)
-
-        # Load and apply texture
-        try:
-            tex = pv.read_texture('assets/playmat.png')
-            plane.texture_map_to_plane(inplace=True)
-            plane.point_data["Texture Coordinates"] *= [-1, -1]  # Flip UV mapping, as we look from reverse side (z<0)
-            plane.active_texture = tex
-            self.plotter.add_mesh(plane, texture=plane.active_texture)
-        except Exception as e:
-            print(f"Error loading texture: {e}")
+        self.plotter.add_mesh(self.plane, texture=self.plane.active_texture)
 
         # Draw grid
         grid_lines = pv.PolyData()
