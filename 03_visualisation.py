@@ -24,10 +24,6 @@ def main():
     for pos in can_positions:
         world.add_tin_can(TinCan(pos))
 
-    # Add webcam
-    webcam = Webcam(Position(x=150, y=0, z=140, theta=math.pi / 2))
-    world.add_webcam(1, webcam)
-
     # Show the world
     world.render()
 

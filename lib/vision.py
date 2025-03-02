@@ -75,33 +75,35 @@ def compute_homography(corners, ids, known_markers_positions):
     return True, H
 
 
+def rodrigues_to_euler(rvec):
+    """Convert Rodrigues rotation vector to Euler angles (in degrees)"""
+    R, _ = cv.Rodrigues(rvec)
+    # Get rotation matrix
+    sy = np.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
+    singular = sy < 1e-6
+
+    if not singular:
+        x = np.arctan2(R[2, 1], R[2, 2])
+        y = np.arctan2(-R[2, 0], sy)
+        z = np.arctan2(R[1, 0], R[0, 0])
+    else:
+        x = np.arctan2(-R[1, 2], R[1, 1])
+        y = np.arctan2(-R[2, 0], sy)
+        z = 0
+
+    # Convert to degrees
+    return np.array([x, y, z]) * 180.0 / np.pi
+
+
+def get_camera_position(rvec, tvec):
+    """Get camera position in world coordinates"""
+    R, _ = cv.Rodrigues(rvec)
+    R = R.T  # Transpose rotation matrix
+    pos = -R @ tvec  # Calculate camera position
+    return pos.T[0]
+
+
 def estimate_pose(corners, ids, known_markers_positions, camera_matrix, dist_coeffs):
-    def get_camera_position(rvec, tvec):
-        """Get camera position in world coordinates"""
-        R, _ = cv.Rodrigues(rvec)
-        R = R.T  # Transpose rotation matrix
-        pos = -R @ tvec  # Calculate camera position
-        return pos
-
-    def rodrigues_to_euler(rvec):
-        """Convert Rodrigues rotation vector to Euler angles (in degrees)"""
-        R, _ = cv.Rodrigues(rvec)
-        # Get rotation matrix
-        sy = np.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
-        singular = sy < 1e-6
-
-        if not singular:
-            x = np.arctan2(R[2, 1], R[2, 2])
-            y = np.arctan2(-R[2, 0], sy)
-            z = np.arctan2(R[1, 0], R[0, 0])
-        else:
-            x = np.arctan2(-R[1, 2], R[1, 1])
-            y = np.arctan2(-R[2, 0], sy)
-            z = 0
-
-        # Convert to degrees
-        return np.array([x, y, z]) * 180.0 / np.pi
-
     obj_points = []
     image_points = []
 
@@ -114,10 +116,8 @@ def estimate_pose(corners, ids, known_markers_positions, camera_matrix, dist_coe
     image_points = np.array(image_points, np.float32)
 
     if len(obj_points) > 0:
-        ret, rvec, tvec = cv.solvePnP(obj_points, image_points, camera_matrix, dist_coeffs)
-        camera_pos = get_camera_position(rvec, tvec)
-        camera_rot = rodrigues_to_euler(rvec)
-        return True, camera_pos, camera_rot
+        ret, rvec, tvec = cv.solvePnP(obj_points, image_points, camera_matrix, dist_coeffs, flags=cv.SOLVEPNP_IPPE)
+        if ret:
+            return True, rvec, tvec
 
-    else:
-        return False, None, None
+    return False, None, None

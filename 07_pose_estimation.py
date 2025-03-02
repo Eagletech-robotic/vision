@@ -50,12 +50,13 @@ def main():
             cv.circle(image, corner[0][0].astype(int), 8, (0, 0, 255), 8)
             cv.circle(image, corner[0][1].astype(int), 6, (0, 0, 255), 2)
 
-        ret, camera_pos, camera_rot = \
+        ret, rvec, tvec = \
             vision.estimate_pose(corners, ids, known_markers_positions, camera_matrix, dist_coeffs)
         if ret:
-            print(f"Camera Position (mm): X={camera_pos[0, 0]:.1f}, Y={camera_pos[1, 0]:.1f}, Z={camera_pos[2, 0]:.1f}")
-            print(
-                f"Camera Rotation (deg): Roll={camera_rot[0]:.1f}, Pitch={camera_rot[1]:.1f}, Yaw={camera_rot[2]:.1f}")
+            euler = vision.rodrigues_to_euler(rvec)
+            camera_pos = vision.get_camera_position(rvec, tvec)
+            print(f"Camera Position (mm): X={camera_pos[0]:.1f}, Y={camera_pos[1]:.1f}, Z={camera_pos[2]:.1f}")
+            print(f"Camera Rotation (deg): Roll={euler[0]:.1f}, Pitch={euler[1]:.1f}, Yaw={euler[2]:.1f}")
 
         common.show_in_window("image", image)
 

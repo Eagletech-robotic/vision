@@ -3,6 +3,7 @@ import numpy as np
 from dataclasses import dataclass
 import math
 from enum import IntEnum
+import cv2 as cv
 
 
 @dataclass
@@ -64,13 +65,43 @@ class TinCan:
 
 
 class Webcam:
-    def __init__(self, position: Position):
+    def __init__(self, position, rvec):
         self.position = position
+        self.rvec = rvec
 
     def draw(self, plotter: pv.Plotter):
-        webcam = pv.Sphere(center=(self.position.x, self.position.y, self.position.z),
-                           radius=10)
-        plotter.add_mesh(webcam, color='blue')
+        """Draws the camera as a pyramid (frustum) to represent its direction."""
+        # Draw camera as a small sphere
+        camera_sphere = pv.Sphere(center=self.position, radius=3)
+        plotter.add_mesh(camera_sphere, color='blue')
+
+        # Compute frustum corners (in camera space)
+        fov = 30  # Field of view in degrees
+        depth = 20  # How far the frustum extends
+        angle = np.radians(fov / 2)
+        h = np.tan(angle) * depth
+        w = h * 1.5  # Assume 1.5x aspect ratio
+
+        frustum_points = np.array([
+            [0, 0, 0],  # Camera position
+            [-w, -h, -depth],  # Bottom-left
+            [w, -h, -depth],  # Bottom-right
+            [w, h, -depth],  # Top-right
+            [-w, h, -depth]  # Top-left
+        ])
+
+        # Transform frustum points to world space
+        rotation, _ = cv.Rodrigues(self.rvec)
+        frustum_points = (rotation @ frustum_points.T).T + self.position
+
+        # Draw frustum lines
+        edges = [
+            (0, 1), (0, 2), (0, 3), (0, 4),  # From camera to frustum corners
+            (1, 2), (2, 3), (3, 4), (4, 1)  # Connect frustum corners
+        ]
+        for edge in edges:
+            line = pv.Line(frustum_points[edge[0]], frustum_points[edge[1]])
+            plotter.add_mesh(line, color="red", line_width=2)
 
 
 class World:
@@ -79,7 +110,7 @@ class World:
         self.length = 200  # 200cm
         self.robots = []
         self.tin_cans = []
-        self.webcams = []
+        self.webcams = {}
         self.blocking = blocking
         self.off_screen = off_screen
 
@@ -117,6 +148,7 @@ class World:
         try:
             tex = pv.read_texture('assets/playmat.png')
             plane.texture_map_to_plane(inplace=True)
+            plane.point_data["Texture Coordinates"] *= [-1, -1]  # Flip UV mapping, as we look from reverse side (z<0)
             plane.active_texture = tex
             self.plotter.add_mesh(plane, texture=plane.active_texture)
         except Exception as e:
@@ -142,7 +174,7 @@ class World:
         for can in self.tin_cans:
             can.draw(self.plotter)
 
-        for webcam in self.webcams:
+        for webcam in self.webcams.values():
             webcam.draw(self.plotter)
 
         if self.off_screen:

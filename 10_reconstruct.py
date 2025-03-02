@@ -113,12 +113,24 @@ class Stream:
         if ids is None or len(ids) == 0:
             return
 
-        ret, camera_pos, camera_rot = \
+        ret, rvec, tvec = \
             vision.estimate_pose(corners, ids, known_markers_positions, self.camera_matrix, self.dist_coeffs)
+
         if ret:
-            self.last_pose = camera_pos, camera_rot
-            print(
-                f"Camera {self.index} Position (mm): X={camera_pos[0, 0]:.1f}, Y={camera_pos[1, 0]:.1f}, Z={camera_pos[2, 0]:.1f}")
+            self.last_pose = rvec, tvec
+            pos = vision.get_camera_position(rvec, tvec)
+            print(f"Camera {self.index} Position (mm): X={pos[0]:.1f}, Y={pos[1]:.1f}, Z={pos[2]:.1f}")
+
+    def draw_cross(self, image, world_point):
+        if self.last_pose is None:
+            return
+
+        camera_rvec, camera_tvec = self.last_pose
+        image_points, _ = cv.projectPoints(world_point, camera_rvec, camera_tvec, self.camera_matrix, self.dist_coeffs)
+        u, v = map(int, image_points.ravel())
+        half_size = 50
+        cv.line(image, (u - half_size, v), (u + half_size, v), (0, 255, 0), 3)
+        cv.line(image, (u, v - half_size), (u, v + half_size), (0, 255, 0), 3)
 
     def draw(self):
         image = self.last_image.copy()
@@ -130,6 +142,7 @@ class Stream:
                 cv.circle(image, corner[0][1].astype(int), 6, (0, 0, 255), 2)
                 cv.putText(image, str(id[0]), tuple(corner[0][0].astype(int)), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255),
                            5)
+        self.draw_cross(image, np.array([[150., 200., 0.]]))
         return image
 
     def world_positions(self):
@@ -141,7 +154,7 @@ class Stream:
         if not ret:
             return []
 
-        _world_positions = []
+        world_positions = []
         for id, corner in zip(ids, corners):
             marker_id = id[0]
             corner = corner[0]
@@ -157,9 +170,9 @@ class Stream:
                 world_point = world_point / world_point[2]  # Normalize homogeneous coordinates
 
                 print(f"Marker {marker_id} at {world_point}")
-                _world_positions.append((marker_id, world_point[0], world_point[1], world_point[2]))
+                world_positions.append((marker_id, world_point[0], world_point[1], world_point[2]))
 
-        return _world_positions
+        return world_positions
 
 
 class Reconstruction:
@@ -176,17 +189,18 @@ class Reconstruction:
         for i, stream in enumerate(self.streams):
             last_pose = stream.last_pose
             if last_pose is not None:
-                camera_pos, camera_rot = last_pose
-                webcam = Webcam(Position(camera_pos[0, 0], camera_pos[1, 0], camera_pos[2, 0]))
+                rvec, tvec = last_pose
+                position = vision.get_camera_position(rvec, tvec)
+                webcam = Webcam(position, rvec)
                 self.world.add_webcam(i + 1, webcam)
 
         for marker_id, x, y, z in self.world_positions:
             if marker_id == vision.MarkerId.TIN_CAN:
                 self.world.add_tin_can(TinCan(Position(x, y)))
-            elif marker_id >= vision.MarkerId.ROBOT_BLUE_LO or marker_id <= vision.MarkerId.ROBOT_BLUE_HI:
+            elif vision.MarkerId.ROBOT_BLUE_LO <= marker_id <= vision.MarkerId.ROBOT_BLUE_HI:
                 robot = Robot(Position(x, y, theta=0), RobotColor.BLUE)
                 self.world.add_robot(robot)
-            elif marker_id >= vision.MarkerId.ROBOT_YELLOW_LO or marker_id <= vision.MarkerId.ROBOT_YELLOW_HI:
+            elif vision.MarkerId.ROBOT_YELLOW_LO <= marker_id <= vision.MarkerId.ROBOT_YELLOW_HI:
                 robot = Robot(Position(x, y, theta=0), RobotColor.YELLOW)
                 self.world.add_robot(robot)
 
