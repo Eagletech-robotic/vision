@@ -121,7 +121,7 @@ class Stream:
             pos = vision.get_camera_position(rvec, tvec)
             print(f"Camera {self.index} Position (mm): X={pos[0]:.1f}, Y={pos[1]:.1f}, Z={pos[2]:.1f}")
 
-    def draw_cross(self, image, world_point):
+    def draw_cross(self, image, world_point, text=None):
         if self.last_pose is None:
             return
 
@@ -131,6 +131,8 @@ class Stream:
         half_size = 50
         cv.line(image, (u - half_size, v), (u + half_size, v), (0, 255, 0), 3)
         cv.line(image, (u, v - half_size), (u, v + half_size), (0, 255, 0), 3)
+        if text:
+            cv.putText(image, text, (u, v), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
     def draw(self):
         image = self.last_image.copy()
@@ -145,13 +147,37 @@ class Stream:
         self.draw_cross(image, np.array([[150., 200., 0.]]))
         return image
 
+    def image_to_world_point(self, image_point, z_world):
+        rvec, tvec = self.last_pose
+        R, _ = cv.Rodrigues(rvec)
+
+        image_points = np.array([[[image_point[0], image_point[1]]]], dtype=np.float32)
+        undistorted_points = cv.undistortPoints(image_points, self.camera_matrix, self.dist_coeffs)
+
+        # The undistorted point is in normalized camera coordinates
+        x_normalized, y_normalized = undistorted_points[0, 0]
+
+        # Create a ray in camera coordinates
+        ray_camera = np.array([x_normalized, y_normalized, 1.0])
+
+        # Transform ray to world coordinates
+        ray_world = np.matmul(R.T, ray_camera)
+
+        # Camera center in world coordinates
+        camera_center = -np.matmul(R.T, tvec.reshape(3, 1)).flatten()
+
+        # Calculate the scaling factor to reach the plane at z=z_world
+        # We need to solve: camera_center[2] + s * ray_world[2] = z_world
+        s = (z_world - camera_center[2]) / ray_world[2]
+
+        # Calculate the world point
+        world_point = camera_center + s * ray_world
+
+        return world_point
+
     def world_positions(self):
         corners, ids = self.last_detection
         if ids is None or len(ids) == 0:
-            return []
-
-        ret, H = vision.compute_homography(corners, ids, known_markers_positions)
-        if not ret:
             return []
 
         world_positions = []
@@ -161,15 +187,11 @@ class Stream:
             if (marker_id == vision.MarkerId.TIN_CAN or
                     vision.MarkerId.ROBOT_BLUE_LO <= marker_id <= vision.MarkerId.ROBOT_BLUE_HI or
                     vision.MarkerId.ROBOT_YELLOW_LO <= marker_id <= vision.MarkerId.ROBOT_YELLOW_HI):
-                # Take center point of marker
                 center = corner.mean(axis=0)
-                center_homogeneous = np.array([center[0], center[1], 1])
+                z_world = -8.5 if marker_id == vision.MarkerId.TIN_CAN else -32.0
+                world_point = self.image_to_world_point(center, z_world)
 
-                # Apply homography
-                world_point = H @ center_homogeneous
-                world_point = world_point / world_point[2]  # Normalize homogeneous coordinates
-
-                print(f"Marker {marker_id} at {world_point}")
+                print(f"Marker {marker_id} at {world_point[:2]}")
                 world_positions.append((marker_id, world_point[0], world_point[1], world_point[2]))
 
         return world_positions
