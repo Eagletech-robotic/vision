@@ -46,7 +46,11 @@ def main():
             print(f"  Camera Position (mm): X={camera_pos[0]:.1f}, Y={camera_pos[1]:.1f}, Z={camera_pos[2]:.1f}")
 
         for id, corner in zip(ids, corners):
-            print(f"  Tag {id[0]}: {corner[0][0]}")
+            marker_id = id[0]
+            center = corner[0].mean(axis=0)
+            z_world = 0.0 if marker_id == 7 else vision.z_world(marker_id) # HACK: Marker 7 is on the ground
+            world_point = vision.image_to_world_point(center, z_world, rvec, tvec, camera_matrix, dist_coeffs)
+            print(f"  Tag {marker_id}: {world_point}")
 
 
 if __name__ == "__main__":

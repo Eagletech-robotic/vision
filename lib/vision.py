@@ -24,6 +24,14 @@ class MarkerRotation(IntEnum):
     TOP_RIGHT = 2
     BOTTOM_RIGHT = 3
 
+def z_world(marker_id):
+    if marker_id == MarkerId.TIN_CAN:
+        return -8.5
+    elif MarkerId.ROBOT_BLUE_LO <= marker_id <= MarkerId.ROBOT_YELLOW_HI:
+        return -32.0
+    else:
+        return 0.0
+
 
 MarkerPositions = {
     MarkerId.BOARD_TOP_LEFT: [
@@ -149,3 +157,31 @@ def estimate_pose(corners, ids, known_markers_positions, camera_matrix, dist_coe
             return True, rvec, tvec
 
     return False, None, None
+
+
+def image_to_world_point(image_point, z_world, rvec, tvec, camera_matrix, dist_coeffs):
+    R, _ = cv.Rodrigues(rvec)
+
+    image_points = np.array([[[image_point[0], image_point[1]]]], dtype=np.float32)
+    undistorted_points = cv.undistortPoints(image_points, camera_matrix, dist_coeffs)
+
+    # The undistorted point is in normalized camera coordinates
+    x_normalized, y_normalized = undistorted_points[0, 0]
+
+    # Create a ray in camera coordinates
+    ray_camera = np.array([x_normalized, y_normalized, 1.0])
+
+    # Transform ray to world coordinates
+    ray_world = np.matmul(R.T, ray_camera)
+
+    # Camera center in world coordinates
+    camera_center = -np.matmul(R.T, tvec.reshape(3, 1)).flatten()
+
+    # Calculate the scaling factor to reach the plane at z=z_world
+    # We need to solve: camera_center[2] + s * ray_world[2] = z_world
+    s = (z_world - camera_center[2]) / ray_world[2]
+
+    # Calculate the world point
+    world_point = camera_center + s * ray_world
+
+    return world_point

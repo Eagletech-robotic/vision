@@ -121,31 +121,7 @@ class Stream:
 
     def image_to_world_point(self, image_point, z_world):
         rvec, tvec = self.last_pose
-        R, _ = cv.Rodrigues(rvec)
-
-        image_points = np.array([[[image_point[0], image_point[1]]]], dtype=np.float32)
-        undistorted_points = cv.undistortPoints(image_points, self.camera_matrix, self.dist_coeffs)
-
-        # The undistorted point is in normalized camera coordinates
-        x_normalized, y_normalized = undistorted_points[0, 0]
-
-        # Create a ray in camera coordinates
-        ray_camera = np.array([x_normalized, y_normalized, 1.0])
-
-        # Transform ray to world coordinates
-        ray_world = np.matmul(R.T, ray_camera)
-
-        # Camera center in world coordinates
-        camera_center = -np.matmul(R.T, tvec.reshape(3, 1)).flatten()
-
-        # Calculate the scaling factor to reach the plane at z=z_world
-        # We need to solve: camera_center[2] + s * ray_world[2] = z_world
-        s = (z_world - camera_center[2]) / ray_world[2]
-
-        # Calculate the world point
-        world_point = camera_center + s * ray_world
-
-        return world_point
+        return vision.image_to_world_point(image_point, z_world, rvec, tvec, self.camera_matrix, self.dist_coeffs)
 
     def world_positions(self):
         corners, ids = self.last_detection
@@ -160,7 +136,7 @@ class Stream:
                     vision.MarkerId.ROBOT_BLUE_LO <= marker_id <= vision.MarkerId.ROBOT_BLUE_HI or
                     vision.MarkerId.ROBOT_YELLOW_LO <= marker_id <= vision.MarkerId.ROBOT_YELLOW_HI):
                 center = corner.mean(axis=0)
-                z_world = -8.5 if marker_id == vision.MarkerId.TIN_CAN else -32.0
+                z_world = vision.z_world(marker_id)
                 world_point = self.image_to_world_point(center, z_world)
 
                 print(f"Marker {marker_id} at {world_point[:2]}")
