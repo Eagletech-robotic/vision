@@ -50,6 +50,8 @@ def pick_camera():
 def capture(camera_index):
     cap = cv.VideoCapture(camera_index)
     cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
+    cap.set(cv.CAP_PROP_FRAME_WIDTH, 3264)
+    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 2448)
     return cap
 
 
