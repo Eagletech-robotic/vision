@@ -14,33 +14,6 @@ def main():
 
     aruco_detector = detection.build_aruco_detector()
 
-    known_markers_positions = {
-        vision.MarkerId.BOARD_TOP_LEFT: [
-            (55, 55, 0),
-            (55 + 10, 55, 0),
-            (55 + 10, 55 + 10, 0),
-            (55, 55 + 10, 0),
-        ],
-        vision.MarkerId.BOARD_BOTTOM_LEFT: [
-            (55, 135, 0),
-            (55 + 10, 135, 0),
-            (55 + 10, 135 + 10, 0),
-            (55, 135 + 10, 0),
-        ],
-        vision.MarkerId.BOARD_TOP_RIGHT: [
-            (235, 55, 0),
-            (235 + 10, 55, 0),
-            (235 + 10, 55 + 10, 0),
-            (235, 55 + 10, 0),
-        ],
-        vision.MarkerId.BOARD_BOTTOM_RIGHT: [
-            (235, 135, 0),
-            (235 + 10, 135, 0),
-            (235 + 10, 135 + 10, 0),
-            (235, 135 + 10, 0),
-        ],
-    }
-
     while True:
         _, image = cap.read()
         corners, ids, _rejected = aruco_detector.detectMarkers(image)
@@ -51,7 +24,7 @@ def main():
             cv.circle(image, corner[0][1].astype(int), 6, (0, 0, 255), 2)
 
         ret, rvec, tvec = \
-            vision.estimate_pose(corners, ids, known_markers_positions, camera_matrix, dist_coeffs)
+            vision.estimate_pose(corners, ids, vision.MarkerPositions, camera_matrix, dist_coeffs)
         if ret:
             euler = vision.rodrigues_to_euler(rvec)
             camera_pos = vision.get_camera_position(rvec, tvec)

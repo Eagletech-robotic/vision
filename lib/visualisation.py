@@ -5,6 +5,8 @@ import math
 from enum import IntEnum
 import cv2 as cv
 
+from lib import common
+
 
 @dataclass
 class Position:
@@ -164,6 +166,7 @@ class World:
             grid_lines += line
         self.plotter.add_mesh(grid_lines, color='white', line_width=2, opacity=0.8)
 
+    @common.measure_time
     def render(self):
         self.plotter.clear()
         self.draw_ground()
@@ -174,8 +177,8 @@ class World:
         for can in self.tin_cans:
             can.draw(self.plotter)
 
-        for webcam in self.webcams.values():
-            webcam.draw(self.plotter)
+        # for webcam in self.webcams.values():
+        #     webcam.draw(self.plotter)
 
         if self.off_screen:
             return self.plotter.screenshot(return_img=True)

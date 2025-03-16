@@ -1,6 +1,6 @@
 # ----------------
 # Capture one image each second, save as numbered images.
-# Usage: python capture_images.py output_folder
+# Usage: python 11_capture.py output_folder
 # ----------------
 
 import cv2 as cv

@@ -25,6 +25,34 @@ class MarkerRotation(IntEnum):
     BOTTOM_RIGHT = 3
 
 
+MarkerPositions = {
+    MarkerId.BOARD_TOP_LEFT: [
+        (55, 55, 0),
+        (55 + 10, 55, 0),
+        (55 + 10, 55 + 10, 0),
+        (55, 55 + 10, 0),
+    ],
+    MarkerId.BOARD_BOTTOM_LEFT: [
+        (55, 135, 0),
+        (55 + 10, 135, 0),
+        (55 + 10, 135 + 10, 0),
+        (55, 135 + 10, 0),
+    ],
+    MarkerId.BOARD_TOP_RIGHT: [
+        (235, 55, 0),
+        (235 + 10, 55, 0),
+        (235 + 10, 55 + 10, 0),
+        (235, 55 + 10, 0),
+    ],
+    MarkerId.BOARD_BOTTOM_RIGHT: [
+        (235, 135, 0),
+        (235 + 10, 135, 0),
+        (235 + 10, 135 + 10, 0),
+        (235, 135 + 10, 0),
+    ],
+}
+
+
 @dataclass
 class MarkerPosition:
     x: float

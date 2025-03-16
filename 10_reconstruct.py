@@ -46,34 +46,6 @@ def show_in_fullscreen(name, img1, img2, reconstructed):
     cv.imshow(name, canvas)
 
 
-known_markers_positions = {
-    vision.MarkerId.BOARD_TOP_LEFT: [
-        (55, 55, 0),
-        (55 + 10, 55, 0),
-        (55 + 10, 55 + 10, 0),
-        (55, 55 + 10, 0),
-    ],
-    vision.MarkerId.BOARD_BOTTOM_LEFT: [
-        (55, 135, 0),
-        (55 + 10, 135, 0),
-        (55 + 10, 135 + 10, 0),
-        (55, 135 + 10, 0),
-    ],
-    vision.MarkerId.BOARD_TOP_RIGHT: [
-        (235, 55, 0),
-        (235 + 10, 55, 0),
-        (235 + 10, 55 + 10, 0),
-        (235, 55 + 10, 0),
-    ],
-    vision.MarkerId.BOARD_BOTTOM_RIGHT: [
-        (235, 135, 0),
-        (235 + 10, 135, 0),
-        (235 + 10, 135 + 10, 0),
-        (235, 135 + 10, 0),
-    ],
-}
-
-
 class Stream:
     def __init__(self, index, camera_index):
         self.index = index
@@ -114,7 +86,7 @@ class Stream:
             return
 
         ret, rvec, tvec = \
-            vision.estimate_pose(corners, ids, known_markers_positions, self.camera_matrix, self.dist_coeffs)
+            vision.estimate_pose(corners, ids, vision.MarkerPositions, self.camera_matrix, self.dist_coeffs)
 
         if ret:
             self.last_pose = rvec, tvec
