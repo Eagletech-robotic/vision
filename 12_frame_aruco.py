@@ -1,12 +1,10 @@
 # ----------------
-# Analyse the frames in the given folder.
-# Usage: python 12_frame_analysis.py frame_folder
+# Find Aruco tags in frames.
+# Usage: python 12_frame_aruco.py frame_folder
 # ----------------
 
-import cv2 as cv
 import sys
-import os
-from lib import detection, vision, camera
+from lib import detection, vision, camera, frames
 
 
 def main():
@@ -16,18 +14,11 @@ def main():
         print(f"Usage: python {sys.argv[0]} frame_folder")
         exit(1)
 
-    # Select and initialize camera
+    # Load frames
+    images = frames.import_from_folder(frame_folder)
+
+    # Initialize camera and detector
     camera_matrix, dist_coeffs = camera.load_calibration(camera_name="W4DS--SN0001")
-
-    # Load all images in the folder
-    images = {}
-    for filename in os.listdir(frame_folder):
-        if filename.endswith(".jpg"):
-            frame_nb = int(filename.split("_")[1].split(".")[0])
-            images[frame_nb] = cv.imread(os.path.join(frame_folder, filename))
-    print(f"Loaded {len(images)} images from {frame_folder}")
-
-    # Analyse images
     aruco_detector = detection.build_aruco_detector()
 
     for frame_nb in sorted(images.keys()):
@@ -48,7 +39,7 @@ def main():
         for id, corner in zip(ids, corners):
             marker_id = id[0]
             center = corner[0].mean(axis=0)
-            z_world = 0.0 if marker_id == 7 else vision.z_world(marker_id) # HACK: Marker 7 is on the ground
+            z_world = 0.0 if marker_id == 7 else vision.z_world(marker_id)  # HACK: Marker 7 is on the ground
             world_point = vision.image_to_world_point(center, z_world, rvec, tvec, camera_matrix, dist_coeffs)
             print(f"  Tag {marker_id}: {world_point}")
 
