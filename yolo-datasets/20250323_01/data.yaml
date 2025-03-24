@@ -1,0 +1,8 @@
+names:
+  0: upright_can
+  1: platform
+  2: plank
+  3: fallen_can
+path: .
+train: train.txt
+val: train.txt
