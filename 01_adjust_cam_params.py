@@ -18,7 +18,7 @@ def add_trackbars(window_name, properties, cap):
     common.init_window(window_name)
     for prop in properties:
         values = camera.detect_acceptable_values(cap, prop, -100, 500)
-        name = camera.CAMERA_PROPERTIES[prop]
+        name = camera.ALL_CAMERA_PROPERTIES[prop]
         if not name:
             print(f"Unknown property {prop}. Exiting.")
             exit()
@@ -47,9 +47,11 @@ def main():
     camera_index = camera.pick_camera()
     cap = camera.capture(camera_index)
 
+    camera.print_properties(cap, all=True)
     camera.load_properties(cap, camera_index)
     add_trackbars("image", [
         cv.CAP_PROP_AUTO_EXPOSURE,
+        cv.CAP_PROP_AUTOFOCUS,
         cv.CAP_PROP_FPS,
         cv.CAP_PROP_BRIGHTNESS,
         cv.CAP_PROP_CONTRAST,
