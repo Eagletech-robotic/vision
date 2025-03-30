@@ -50,8 +50,6 @@ def pick_camera():
 def capture(camera_index):
     cap = cv.VideoCapture(camera_index)
     cap.set(cv.CAP_PROP_FOURCC, cv.VideoWriter.fourcc('M', 'J', 'P', 'G'))
-    cap.set(cv.CAP_PROP_FRAME_WIDTH, 3264)
-    cap.set(cv.CAP_PROP_FRAME_HEIGHT, 2448)
     return cap
 
 
@@ -96,25 +94,42 @@ def monitor_property_changes(cap):
     return decorator
 
 
+def detect_acceptable_values(cap, prop, min, max):
+    acceptable_values = []
+    for value in range(min, max + 1):
+        cap.set(prop, value)
+        if cap.get(prop) == value:
+            acceptable_values.append(value)
+    return acceptable_values
+
+
 def print_camera_properties(cap):
     print("Camera properties:")
     for prop, name in CAMERA_PROPERTIES.items():
         print(f" - {name}: {cap.get(prop)}")
 
 
-def camera_settings_path(camera_index):
+def camera_settings_path(camera_index, reset=False):
     name = camera_name(camera_index)
-    return f"camera-settings/{name}.yaml"
+    return f"camera-settings/{name}{'.reset' if reset else ''}.yaml"
+
+
+def reset_properties(cap, camera_index):
+    try:
+        with open(camera_settings_path(camera_index, reset=True), 'r') as file:
+            settings = yaml.safe_load(file)
+        for name, value in settings["properties"].items():
+            prop = next(p for p, n in CAMERA_PROPERTIES.items() if n == name)
+            cap.set(prop, value)
+        print("Properties have been reset to default values.")
+    except FileNotFoundError:
+        print(f"Reset file not found: {camera_settings_path(camera_index, reset=True)}")
 
 
 def load_properties(cap, camera_index):
     @monitor_property_changes(cap)
     def func():
-        cap.set(cv.CAP_PROP_AUTOFOCUS, 0)
-        cap.set(cv.CAP_PROP_AUTO_EXPOSURE, 0)
         cap.set(cv.CAP_PROP_BUFFERSIZE, 1)
-
-        # Return if the camera settings file does not exist
         try:
             with open(camera_settings_path(camera_index), 'r') as file:
                 settings = yaml.safe_load(file)
