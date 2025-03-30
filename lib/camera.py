@@ -38,13 +38,17 @@ def list_available_cameras():
 def pick_camera():
     available_cameras = list_available_cameras()
     print("Available cameras: ", available_cameras)
-    if len(available_cameras) > 1:
-        return int(input("Enter the camera index then press enter:"))
-    elif len(available_cameras) == 1:
+
+    if len(available_cameras) == 1:
         return available_cameras[0]["index"]
-    else:
-        print("No cameras found")
-        exit()
+
+    while True:
+        try:
+            camera_index = int(input("Enter the camera index then press enter:"))
+            if any(cam["index"] == camera_index for cam in available_cameras):
+                return camera_index
+        except ValueError:
+            pass
 
 
 def capture(camera_index):
@@ -96,10 +100,12 @@ def monitor_property_changes(cap):
 
 def detect_acceptable_values(cap, prop, min, max):
     acceptable_values = []
+    prev_value = cap.get(prop)
     for value in range(min, max + 1):
         cap.set(prop, value)
         if cap.get(prop) == value:
             acceptable_values.append(value)
+    cap.set(prop, prev_value)
     return acceptable_values
 
 
