@@ -8,19 +8,25 @@ from lib import common, camera, detection
 
 
 def add_trackbars(window_name, properties, cap):
-    def on_trackbar(prop):
-        def value_updated(value):
+    def on_trackbar(prop, values):
+        def value_updated(index):
+            value = values[index]
             camera.monitor_property_changes(cap)(lambda: cap.set(prop, value))
 
         return value_updated
 
     common.init_window(window_name)
     for prop in properties:
+        values = camera.detect_acceptable_values(cap, prop, -100, 500)
         name = camera.CAMERA_PROPERTIES[prop]
         if not name:
             print(f"Unknown property {prop}. Exiting.")
             exit()
-        cv.createTrackbar(name, "image", int(cap.get(prop)), 500, on_trackbar(prop))
+        print(f"Acceptable values for {name}: {values}")
+        if len(values) > 1:
+            value = int(cap.get(prop))
+            index = values.index(value)
+            cv.createTrackbar(name, "image", index, len(values) - 1, on_trackbar(prop, values))
 
 
 @common.measure_time
@@ -43,6 +49,7 @@ def main():
 
     camera.load_properties(cap, camera_index)
     add_trackbars("image", [
+        cv.CAP_PROP_AUTO_EXPOSURE,
         cv.CAP_PROP_FPS,
         cv.CAP_PROP_BRIGHTNESS,
         cv.CAP_PROP_CONTRAST,
