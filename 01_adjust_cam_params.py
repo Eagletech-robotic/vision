@@ -31,6 +31,9 @@ def process_image(image, aruco_detector):
     common.show_in_window("image", image)
 
 
+FRAMES_PER_SEC = 5
+
+
 def main():
     common.run_hw_diagnostics()
     aruco_detector = detection.build_aruco_detector()
@@ -51,11 +54,10 @@ def main():
     ], cap)
 
     print("\nPress 'q' to quit, 's' to save parameters.\n")
-    camera_fps = int(cap.get(cv.CAP_PROP_FPS))
     while True:
         ret, frame = cap.read()
         process_image(frame, aruco_detector)
-        c = cv.waitKey(1000 // camera_fps)
+        c = cv.waitKey(1000 // FRAMES_PER_SEC)
         if c == ord("q"):
             break
         elif c == ord("s"):
