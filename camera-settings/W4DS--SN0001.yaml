@@ -19,11 +19,11 @@ properties:
   Auto Focus: 0.0
   Brightness: 0.0
   Contrast: 32.0
-  Exposure: 50.0
-  FPS: 5.0
+  Exposure: 60.0
+  FPS: 30.0
   Focus: 255.0
   Format: 16.0
-  Gain: 50.0
+  Gain: 60.0
   Height: 720.0
   Hue: 0.0
   Mode: 0.0
