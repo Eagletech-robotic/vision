@@ -60,7 +60,7 @@ tqdm==4.67.1
 triton==3.2.0
 typing_extensions==4.12.2
 tzdata==2025.1
-ultralytics==8.3.94
+ultralytics==8.3.107
 ultralytics-thop==2.0.14
 urllib3==2.3.0
 vtk==9.3.1
