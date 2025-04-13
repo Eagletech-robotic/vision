@@ -222,7 +222,7 @@ def load_properties(cap, camera_index):
 
 def load_calibration(camera_index=None, camera_name=None):
     try:
-        path = camera_settings_path(camera_index) if camera_index else f"camera-settings/{camera_name}.yaml"
+        path = f"camera-settings/{camera_name}.yaml" if camera_index is None else camera_settings_path(camera_index)
         with open(path, 'r') as file:
             settings = yaml.safe_load(file)
         camera_matrix = np.array(settings["camera_matrix"], dtype=np.float32)
