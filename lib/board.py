@@ -61,7 +61,7 @@ def draw_interface(team_color, score):
         _put_text_centered(img, str(score), int(IMAGE_WIDTH / 2), score_box_y + int(score_box_height / 2),
                            font_scale=7.0, color=(255, 255, 255), thickness=15)
 
-        return img
+    return img
 
 
 def draw_interface_debug(capture_1, capture_2, world):

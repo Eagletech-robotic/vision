@@ -83,7 +83,7 @@ class Stream:
     def estimate_pose(self):
         corners, ids = self.last_detection
         if ids is None or len(ids) == 0:
-            return
+            return None
 
         ret, rvec, tvec = \
             vision.estimate_pose(corners, ids, vision.MarkerPositions, self.camera_matrix, self.dist_coeffs)
