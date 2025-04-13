@@ -3,7 +3,10 @@ import cv2 as cv
 from ultralytics import YOLO
 from lib import common, camera
 
-model = YOLO("yolo-runs/train/20250323_01/weights/best.pt")
+name = "detect/20250323_01"
+# name = "obb/20250323_01-obb"
+
+model = YOLO(f"./yolo-runs/{name}/weights/best.pt")
 print(f"Model loaded on device: {model.device}")
 
 camera_index = camera.pick_camera()

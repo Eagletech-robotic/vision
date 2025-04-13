@@ -9,13 +9,14 @@ from pathlib import Path
 
 torch.set_num_threads(8)
 
-model = YOLO("yolo11m-obb.pt").to("cpu")
+name = "20250323_01"
+
+model = YOLO("yolo11m.pt").to("cpu")
 print(f"Model loaded on device: {model.device}")
 
-name = "20250323_01-obb"
 results = model.train(
     data=Path(f"./yolo-datasets/{name}/data.yaml").resolve(),
-    epochs=10,
+    epochs=20,
     imgsz=640,
     batch=8,  # 3: max value on NVIDIA GTX 1650
     name=name,
