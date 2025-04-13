@@ -8,3 +8,7 @@ venv/
 # IDE
 .idea/
 .vscode/
+
+# YOLO
+train.cache
+yolo-runs/

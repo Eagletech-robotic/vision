@@ -1,0 +1,12 @@
+./images/train/fallen_cans.jpg
+./images/train/platforms_1.jpg
+./images/train/platforms_2.jpg
+./images/train/platforms_3.jpg
+./images/train/platforms_4.jpg
+./images/train/platforms_5.jpg
+./images/train/platforms_6.jpg
+./images/train/platforms_7.jpg
+./images/train/platforms_8.jpg
+./images/train/platforms_9.jpg
+./images/train/upright_cans_1.jpg
+./images/train/upright_cans_2.jpg

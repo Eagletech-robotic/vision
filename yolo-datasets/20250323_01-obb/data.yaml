@@ -4,5 +4,5 @@ names:
   2: plank
   3: fallen_can
 path: .
-train: ./20250323_01/train.txt
-val: ./20250323_01/train.txt
+train: ./20250323_01-obb/train.txt
+val: ./20250323_01-obb/train.txt
