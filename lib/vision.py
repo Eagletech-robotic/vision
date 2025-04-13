@@ -6,12 +6,12 @@ from enum import IntEnum
 
 class MarkerId(IntEnum):
     TIN_CAN = 47
-    BOARD_BOTTOM_LEFT = 22
     BOARD_TOP_LEFT = 20
     BOARD_TOP_RIGHT = 21
+    BOARD_BOTTOM_LEFT = 22
     BOARD_BOTTOM_RIGHT = 23
-    ROBOT_BLUE = 2  # Legacy
-    ROBOT_YELLOW = 6  # Legacy
+    ROBOT_BLUE = 2  # Legacy, use ROBOT_BLUE_LO and ROBOT_BLUE_HI instead
+    ROBOT_YELLOW = 6  # Legacy, use ROBOT_YELLOW_LO and ROBOT_YELLOW_HI instead
     ROBOT_BLUE_LO = 1
     ROBOT_BLUE_HI = 5
     ROBOT_YELLOW_LO = 6
@@ -23,6 +23,7 @@ class MarkerRotation(IntEnum):
     TOP_LEFT = 1
     TOP_RIGHT = 2
     BOTTOM_RIGHT = 3
+
 
 def z_world(marker_id):
     if marker_id == MarkerId.TIN_CAN:
@@ -40,17 +41,17 @@ MarkerPositions = {
         (55 + 10, 55 + 10, 0),
         (55, 55 + 10, 0),
     ],
-    MarkerId.BOARD_BOTTOM_LEFT: [
-        (55, 135, 0),
-        (55 + 10, 135, 0),
-        (55 + 10, 135 + 10, 0),
-        (55, 135 + 10, 0),
-    ],
     MarkerId.BOARD_TOP_RIGHT: [
         (235, 55, 0),
         (235 + 10, 55, 0),
         (235 + 10, 55 + 10, 0),
         (235, 55 + 10, 0),
+    ],
+    MarkerId.BOARD_BOTTOM_LEFT: [
+        (55, 135, 0),
+        (55 + 10, 135, 0),
+        (55 + 10, 135 + 10, 0),
+        (55, 135 + 10, 0),
     ],
     MarkerId.BOARD_BOTTOM_RIGHT: [
         (235, 135, 0),
