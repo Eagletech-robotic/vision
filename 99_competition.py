@@ -48,6 +48,7 @@ def main():
         persistent_state = PersistentState()
 
         running = True
+        debug_mode = False
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -55,12 +56,17 @@ def main():
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:  # Esc or Q to quit
                         running = False
+                    if event.key == pygame.K_d:
+                        debug_mode = not debug_mode
 
             capture_1 = stream_1.capture()
             capture_2 = stream_2.capture()
             world, persistent_state = generate_world(capture_1, capture_2, persistent_state)
 
-            board_img = board.draw_interface(world.team_color, world.score, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+            if debug_mode:
+                board_img = board.draw_interface_debug(capture_1, capture_2, world)
+            else:
+                board_img = board.draw_interface(world.team_color, world.score)
             show_cv_image(screen, board_img)
 
             clock.tick(5)  # 5 FPS ≈ 200ms per frame
