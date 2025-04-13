@@ -1,5 +1,4 @@
 import cv2 as cv
-import numpy as np
 
 from lib import common, camera, detection, vision
 
