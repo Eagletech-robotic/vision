@@ -12,3 +12,4 @@ venv/
 # YOLO
 train.cache
 yolo-runs/
+yolo*.pt
