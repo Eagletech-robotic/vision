@@ -29,6 +29,9 @@ def init_window(name):
     cv.namedWindow(name, cv.WINDOW_NORMAL)
     cv.resizeWindow(name, 1280, 720)
 
+def init_fullscreen_window(name):
+    cv.namedWindow(name, cv.WINDOW_NORMAL | cv.WINDOW_FREERATIO | cv.WINDOW_GUI_NORMAL)
+    cv.resizeWindow(name, 1920, 1080)
 
 def show_in_window(name, image):
     init_window(name)
