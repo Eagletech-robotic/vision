@@ -51,7 +51,7 @@ class DepthEstimator:
         
         # Create pipeline
         try:
-            self.pipe = pipeline(task="depth-estimation", model=model_name, device=self.pipe_device)
+            self.pipe = pipeline(task="depth-estimation", model=model_name, device=self.pipe_device, use_fast=True)
             print(f"Loaded Depth Anything v2 {model_size} model on {self.pipe_device}")
         except Exception as e:
             # Fallback to CPU if there are issues
