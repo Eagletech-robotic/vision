@@ -1,5 +1,5 @@
 # ----------------
-# Capture one image each second, save as numbered images.
+# Capture images and save them as numbered images.
 # Usage: python 11_capture.py output_folder
 # ----------------
 
@@ -46,7 +46,7 @@ def main():
 
             frame_count += 1
 
-            key = cv.waitKey(1000)
+            key = cv.waitKey()
             if key == ord('q'):
                 break
     finally:
