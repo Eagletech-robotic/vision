@@ -50,6 +50,11 @@ class Capture:
         x, y, z = pose[2] if pose else (0, 0, 0)
         put_text_with_background(img, f"X:{x:.0f} Y:{y:.0f} Z:{z:.0f}", (10, 30),
                                  cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        # Show euler angles
+        if pose:
+            roll, pitch, yaw = pose[3]
+            put_text_with_background(img, f"Roll:{roll:.0f} Pitch:{pitch:.0f} Yaw:{yaw:.0f}", (10, 70),
+                                     cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
         # Show the detected markers
         corners, ids = self._detection()
