@@ -5,6 +5,7 @@ import cv2 as cv
 from lib import board, eagle_packet, camera, common, ble_robot
 from lib.image_logger import ImageLogger
 from models import analyser
+from models.analyser import Analyser
 from models.persistent_state import PersistentState
 from models.stream import Stream
 
@@ -64,7 +65,8 @@ def main():
 
             capture_1 = stream_1.capture()
             capture_2 = stream_2.capture()
-            world, persistent_state = analyser.generate_world(capture_1, capture_2, persistent_state)
+            analyser = Analyser(capture_1, capture_2)
+            world, persistent_state = analyser.generate_world(persistent_state)
 
             if debug_mode:
                 board_img = board.draw_interface_debug(capture_1, capture_2, world)
