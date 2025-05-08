@@ -3,12 +3,10 @@ import math
 import pygame
 import cv2 as cv
 
-from lib import board, common, camera
-from lib.eagle_packet import frame_to_human, frame_payload, build_payload
-from models.analyser import generate_world
+from lib import board, eagle_packet, camera, common, ble_robot
+from models import analyser
 from models.persistent_state import PersistentState
 from models.stream import Stream
-from lib import ble_robot
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
 CAMERA_NAME = "W4DS--SN0001"
@@ -78,7 +76,7 @@ def main():
 
             capture_1 = stream_1.capture()
             capture_2 = stream_2.capture()
-            world, persistent_state = generate_world(capture_1, capture_2, persistent_state)
+            world, persistent_state = analyser.generate_world(capture_1, capture_2, persistent_state)
 
             if debug_mode:
                 board_img = board.draw_interface_debug(capture_1, capture_2, world)
@@ -95,8 +93,8 @@ def main():
                 )
             else:
                 robot_pose = None
-            frame = frame_payload(
-                build_payload(
+            frame = eagle_packet.frame_payload(
+                eagle_packet.build_payload(
                     robot_colour=world.team_color or "blue",
                     robot_detected=True if robot_pose else False,
                     robot_pose=robot_pose if robot_pose else (0.0, 0.0, 0.0),
@@ -106,7 +104,7 @@ def main():
                 )
             )
             ble_robot.update_frame(frame)
-            print(f"Enqueue frame: {frame.hex()} {frame_to_human(frame)}")
+            print(f"Enqueue frame: {frame.hex()} {eagle_packet.frame_to_human(frame)}")
 
             clock.tick(1)  # FPS
 
