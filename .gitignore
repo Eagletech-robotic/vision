@@ -12,6 +12,7 @@ venv
 # YOLO
 train.cache
 yolo-runs/
+yolo-datasets/
 yolo*.pt
 YOLO11
 YOLO11-*
