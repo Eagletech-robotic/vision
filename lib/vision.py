@@ -13,6 +13,9 @@ class MarkerId(IntEnum):
     ROBOT_BLUE_HI = 5
     ROBOT_YELLOW_LO = 6
     ROBOT_YELLOW_HI = 10
+    OUR_ROBOT_FRONT_RIGHT = 150
+    OUR_ROBOT_REAR_LEFT = 183
+    OUR_ROBOT_REAR_RIGHT = 142
 
 
 class MarkerRotation(IntEnum):
@@ -44,11 +47,17 @@ def marker_corner_positions(x, y, z, size, rotation: MarkerRotation):
     return np.array(points_3d)
 
 
-MarkerPositions = {
+FIELD_MARKERS = {
     MarkerId.BOARD_BOTTOM_LEFT: marker_corner_positions(0.6, 0.6, 0, 0.1, MarkerRotation.TOP_LEFT),
     MarkerId.BOARD_BOTTOM_RIGHT: marker_corner_positions(2.4, 0.6, 0, 0.1, MarkerRotation.TOP_LEFT),
     MarkerId.BOARD_TOP_LEFT: marker_corner_positions(0.6, 1.4, 0, 0.1, MarkerRotation.TOP_LEFT),
     MarkerId.BOARD_TOP_RIGHT: marker_corner_positions(2.4, 1.4, 0, 0.1, MarkerRotation.TOP_LEFT),
+}
+
+OUR_ROBOT_MARKERS = {
+    MarkerId.OUR_ROBOT_FRONT_RIGHT: marker_corner_positions(0.115, 0.07, 0.35, 0.074, MarkerRotation.TOP_LEFT),
+    MarkerId.OUR_ROBOT_REAR_LEFT: marker_corner_positions(-0.08, -0.04, 0.35, 0.074, MarkerRotation.BOTTOM_RIGHT),
+    MarkerId.OUR_ROBOT_REAR_RIGHT: marker_corner_positions(0.115, -0.04, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
 }
 
 

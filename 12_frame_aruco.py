@@ -30,7 +30,7 @@ def main():
 
         # Pose estimation
         ret, rvec, tvec = \
-            vision.estimate_pose(corners, ids, vision.MarkerPositions, camera_matrix, dist_coeffs)
+            vision.estimate_pose(corners, ids, vision.FIELD_MARKERS, camera_matrix, dist_coeffs)
 
         if ret:
             camera_pos = vision.get_camera_position(rvec, tvec)

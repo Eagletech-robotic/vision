@@ -23,7 +23,7 @@ def main():
         detection.draw_aruco_markers(image, corners, ids)
 
         ret, rvec, tvec = \
-            vision.estimate_pose(corners, ids, vision.MarkerPositions, camera_matrix, dist_coeffs)
+            vision.estimate_pose(corners, ids, vision.FIELD_MARKERS, camera_matrix, dist_coeffs)
         if ret:
             euler = vision.rodrigues_to_euler(rvec)
             camera_pos = vision.get_camera_position(rvec, tvec)

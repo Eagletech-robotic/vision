@@ -31,7 +31,7 @@ class Capture:
             return
 
         ret, rvec, tvec = \
-            vision.estimate_pose(corners, ids, vision.MarkerPositions, self.camera_matrix, self.dist_coeffs)
+            vision.estimate_pose(corners, ids, vision.FIELD_MARKERS, self.camera_matrix, self.dist_coeffs)
         if ret:
             pos = vision.get_camera_position(rvec, tvec)
             euler = vision.rodrigues_to_euler(rvec)

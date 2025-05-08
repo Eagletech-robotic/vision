@@ -72,3 +72,10 @@ def draw_text_with_background(img, text, position,
 
     cv.rectangle(img, (bg_rect[0], bg_rect[1]), (bg_rect[0] + bg_rect[2], bg_rect[1] + bg_rect[3]), bg_color, -1)
     cv.putText(img, text, (x, y), font, font_scale, text_color, thickness)
+
+def normalize_angle(angle):
+    """Normalize an angle to the range [-180, 180) degrees."""
+    angle = angle % 360
+    if angle >= 180:
+        angle -= 360
+    return angle

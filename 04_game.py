@@ -66,7 +66,7 @@ def main():
         # Check if any markers were detected
         if ids is not None and len(ids) > 0:
             # Try to compute the homography
-            ret, H = vision.compute_homography(corners, ids, vision.MarkerPositions)
+            ret, H = vision.compute_homography(corners, ids, vision.FIELD_MARKERS)
             if ret is not None:
                 # Add objects to the world
                 reset_objects(H, corners, ids, world)
