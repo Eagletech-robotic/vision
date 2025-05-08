@@ -1,3 +1,5 @@
+[![Python tests](https://github.com/Eagletech-robotic/vision/actions/workflows/python-tests.yml/badge.svg)](https://github.com/Eagletech-robotic/vision/actions/workflows/python-tests.yml)
+
 ## PIP Environment
 
 Useful commands for managing a pip environment:
@@ -5,6 +7,14 @@ Useful commands for managing a pip environment:
 - Source the pip environment before running a Python script: `source .venv/bin/activate`
 - Freeze dependencies: `pip freeze > requirements.txt`
 - Install dependencies: `pip install -r requirements.txt`
+
+## Run tests
+
+From the root of the project, run:
+
+```bash
+pytest -q
+```
 
 ## Video commands
 

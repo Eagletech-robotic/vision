@@ -36,9 +36,11 @@ def _bits_to_bytes(bits: List[int]) -> bytes:
 # ----------------------------------------------------------------------
 def build_payload(
         robot_colour: str,  # "blue" or "yellow"
+        robot_detected: bool,
         robot_pose: Tuple[float, float, float],  # x_m, y_m, yaw_rad
+        opponent_detected: bool,
         opponent_pose: Tuple[float, float, float],  # x_m, y_m, yaw_rad
-        bleachers: List[Tuple[float, float, float]]  # list[(x_m, y_m, yaw_rad)]
+        bleachers: List[Tuple[float, float, float]],  # list[(x_m, y_m, yaw_rad)]
 ) -> bytes:
     """
     Build the 128‑byte Eagle payload (no starter / checksum).
@@ -51,21 +53,38 @@ def build_payload(
     to_deg = lambda r: round(r * 180 / math.pi)  # rad → deg
 
     # ───────── header ────────────────────────────────────────────────
+    # Packet layout (little-endian bit order)
+    #   bit 0      : robot_colour (0=blue,1=yellow)
+    #   bit 1      : robot_detected
+    #   bits 2-10  : robot_x (cm)
+    #   bits 11-18 : robot_y (cm)
+    #   bits 19-27 : robot_orientation (deg + 180)
+    #   bit 28     : opponent_detected
+    #   bits 29-37 : opponent_x (cm)
+    #   bits 38-45 : opponent_y (cm)
+    #   bits 46-54 : opponent_orientation (deg + 180)
+    #   bits 55-60 : object_count (0-60)
+    #   bits 61-63 : padding (0)
+    # -----------------------------------------------------------------
+
     _push_bits(bits, 1 if robot_colour == "yellow" else 0, 1)
+    _push_bits(bits, 1 if robot_detected else 0, 1)
 
     _push_bits(bits, to_cm(robot_pose[0]), 9)
     _push_bits(bits, to_cm(robot_pose[1]), 8)
     _push_bits(bits, (to_deg(robot_pose[2]) + 180) & 0x1FF, 9)
 
+    _push_bits(bits, 1 if opponent_detected else 0, 1)
     _push_bits(bits, to_cm(opponent_pose[0]), 9)
     _push_bits(bits, to_cm(opponent_pose[1]), 8)
     _push_bits(bits, (to_deg(opponent_pose[2]) + 180) & 0x1FF, 9)
 
-    # ───────── objects ───────────────────────────────────────────────
+    # Truncate list before encoding the count so that the encoded value is consistent
     bleachers = bleachers[:MAX_OBJECTS]  # cap at 60
     _push_bits(bits, len(bleachers), 6)  # object_count
-    _push_bits(bits, 0, 5)  # padding bits 59‑63
+    _push_bits(bits, 0, 3)  # padding bits 61-63
 
+    # ───────── objects ───────────────────────────────────────────────
     for x_m, y_m, yaw_rad in bleachers:
         _push_bits(bits, 0, 2)  # type 0 = Bleacher
         raw_x = round(to_cm(x_m) * 63 / 300) & 0x3F
@@ -88,10 +107,6 @@ def frame_payload(payload: bytes) -> bytes:
     checksum = sum(payload) & 0xFF
     return b"\xFF" + payload + bytes((checksum,))
 
-
-# convenience one‑liner
-def build_eagle_frame(robot_colour, robot_pose, opponent_pose, bleachers) -> bytes:
-    return frame_payload(build_payload(robot_colour, robot_pose, opponent_pose, bleachers))
 
 # ----------------------------------------------------------------------
 # Pretty‑printer / decoder  (debug & logging aid)
@@ -129,17 +144,20 @@ def frame_to_human(frame: bytes) -> str:
     bits = _bits_from_payload(payload)
 
     colour = "yellow" if _pop(bits, 1) else "blue"
+    robot_detected = bool(_pop(bits, 1))
 
     robot_x_cm = _pop(bits, 9)
     robot_y_cm = _pop(bits, 8)
     robot_yaw_deg = _pop(bits, 9) - 180
+
+    opponent_detected = bool(_pop(bits, 1))
 
     opp_x_cm = _pop(bits, 9)
     opp_y_cm = _pop(bits, 8)
     opp_yaw_deg = _pop(bits, 9) - 180
 
     obj_count = _pop(bits, 6)
-    _pop(bits, 5)  # padding
+    _pop(bits, 3)  # padding
 
     objects = []
     for _ in range(obj_count):
@@ -147,11 +165,6 @@ def frame_to_human(frame: bytes) -> str:
         raw_x = _pop(bits, 6)
         raw_y = _pop(bits, 5)
         raw_theta = _pop(bits, 3)
-
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # TODO!!!! The position of a bleacher in (290,129) is received as (152,194)
-        # Compare the packet with the one from the TS implementation
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         x_cm = round(raw_x * 300 / 63)
         y_cm = round(raw_y * 200 / 31)
         theta = raw_theta * 30
@@ -162,7 +175,9 @@ def frame_to_human(frame: bytes) -> str:
     lines = [
         "⇢ Eagle frame (human readable)",
         f"  Colour                : {colour}",
+        f"  Robot detected        : {robot_detected}",
         f"  Robot   (cm,deg)      : x={robot_x_cm}, y={robot_y_cm}, yaw={robot_yaw_deg}",
+        f"  Opponent detected     : {opponent_detected}",
         f"  Opponent(cm,deg)      : x={opp_x_cm}, y={opp_y_cm}, yaw={opp_yaw_deg}",
         f"  Objects ({obj_count})",
     ]
