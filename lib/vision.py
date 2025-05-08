@@ -1,6 +1,5 @@
 import cv2 as cv
 import numpy as np
-from dataclasses import dataclass
 from enum import IntEnum
 
 
@@ -10,8 +9,6 @@ class MarkerId(IntEnum):
     BOARD_TOP_RIGHT = 21
     BOARD_BOTTOM_LEFT = 22
     BOARD_BOTTOM_RIGHT = 23
-    ROBOT_BLUE = 2  # Legacy, use ROBOT_BLUE_LO and ROBOT_BLUE_HI instead
-    ROBOT_YELLOW = 6  # Legacy, use ROBOT_YELLOW_LO and ROBOT_YELLOW_HI instead
     ROBOT_BLUE_LO = 1
     ROBOT_BLUE_HI = 5
     ROBOT_YELLOW_LO = 6
@@ -27,61 +24,32 @@ class MarkerRotation(IntEnum):
 
 def z_world(marker_id):
     if marker_id == MarkerId.TIN_CAN:
-        return -8.5
+        return .085
     elif MarkerId.ROBOT_BLUE_LO <= marker_id <= MarkerId.ROBOT_YELLOW_HI:
-        return -32.0
+        return .32
     else:
-        return 0.0
+        return 0
 
 
-MarkerPositions = {
-    MarkerId.BOARD_TOP_LEFT: [
-        (55, 55, 0),
-        (55 + 10, 55, 0),
-        (55 + 10, 55 + 10, 0),
-        (55, 55 + 10, 0),
-    ],
-    MarkerId.BOARD_TOP_RIGHT: [
-        (235, 55, 0),
-        (235 + 10, 55, 0),
-        (235 + 10, 55 + 10, 0),
-        (235, 55 + 10, 0),
-    ],
-    MarkerId.BOARD_BOTTOM_LEFT: [
-        (55, 135, 0),
-        (55 + 10, 135, 0),
-        (55 + 10, 135 + 10, 0),
-        (55, 135 + 10, 0),
-    ],
-    MarkerId.BOARD_BOTTOM_RIGHT: [
-        (235, 135, 0),
-        (235 + 10, 135, 0),
-        (235 + 10, 135 + 10, 0),
-        (235, 135 + 10, 0),
-    ],
-}
-
-
-@dataclass
-class MarkerPosition:
-    x: float
-    y: float
-    z: float
-    size: float
-    rotation: MarkerRotation
-
-
-def convert_marker_position_to_points(marker_position: MarkerPosition):
+def marker_corner_positions(x, y, z, size, rotation: MarkerRotation):
     points_3d = [
-        [marker_position.x - marker_position.size / 2, marker_position.y - marker_position.size / 2, 0],  # Bottom Left
-        [marker_position.x - marker_position.size / 2, marker_position.y + marker_position.size / 2, 0],  # Top Left
-        [marker_position.x + marker_position.size / 2, marker_position.y + marker_position.size / 2, 0],  # Top Right
-        [marker_position.x + marker_position.size / 2, marker_position.y - marker_position.size / 2, 0]  # Bottom Right
+        [x - size / 2, y - size / 2, z],  # Bottom Left
+        [x - size / 2, y + size / 2, z],  # Top Left
+        [x + size / 2, y + size / 2, z],  # Top Right
+        [x + size / 2, y - size / 2, z]  # Bottom Right
     ]
-    rotation_steps = int(marker_position.rotation)
+    rotation_steps = int(rotation)
     if rotation_steps > 0:
         points_3d = points_3d[rotation_steps:] + points_3d[:rotation_steps]
     return np.array(points_3d)
+
+
+MarkerPositions = {
+    MarkerId.BOARD_BOTTOM_LEFT: marker_corner_positions(0.6, 0.6, 0, 0.1, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_BOTTOM_RIGHT: marker_corner_positions(2.4, 0.6, 0, 0.1, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_TOP_LEFT: marker_corner_positions(0.6, 1.4, 0, 0.1, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_TOP_RIGHT: marker_corner_positions(2.4, 1.4, 0, 0.1, MarkerRotation.TOP_LEFT),
+}
 
 
 def compute_homography(corners, ids, known_markers_positions):

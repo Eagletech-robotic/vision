@@ -91,7 +91,7 @@ class Stream:
         if ret:
             self.last_pose = rvec, tvec
             pos = vision.get_camera_position(rvec, tvec)
-            print(f"Camera {self.index} Position (mm): X={pos[0]:.1f}, Y={pos[1]:.1f}, Z={pos[2]:.1f}")
+            print(f"Camera {self.index} Position: X={pos[0]:.3f}, Y={pos[1]:.3f}, Z={pos[2]:.3f}")
 
     def draw_cross(self, image, world_point, text=None):
         if self.last_pose is None:
@@ -109,13 +109,8 @@ class Stream:
     def draw(self):
         image = self.last_image.copy()
         corners, ids = self.last_detection
-        if ids is not None and len(ids) > 0:
-            for id, corner in zip(ids, corners):
-                cv.drawContours(image, corner.astype(int), -1, (0, 0, 255), 4)
-                cv.circle(image, corner[0][0].astype(int), 8, (0, 0, 255), 8)
-                cv.circle(image, corner[0][1].astype(int), 6, (0, 0, 255), 2)
-                cv.putText(image, str(id[0]), tuple(corner[0][0].astype(int)), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255),
-                           5)
+        detection.draw_aruco_markers(image, corners, ids)
+
         self.draw_cross(image, np.array([[150., 200., 0.]]))
         return image
 

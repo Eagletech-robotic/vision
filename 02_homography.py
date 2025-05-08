@@ -13,14 +13,7 @@ def find_and_draw_tags(image, aruco_detector):
     corners, ids, rejected = aruco_detector.detectMarkers(image)
 
     new_image = image.copy()
-    for id, corner in zip(ids, corners):
-        center = corner[0].mean(axis=0).astype(int)
-        cv.drawContours(new_image, corner.astype(int), -1, (0, 255, 0), 4)
-        cv.circle(new_image, corner[0][0].astype(int), 5, (0, 0, 255), 5)
-        cv.circle(new_image, corner[0][1].astype(int), 2, (128, 128, 255), 2)
-        cv.putText(new_image, str(id[0]), center,
-                   cv.FONT_HERSHEY_SIMPLEX, 2.0, (0, 255, 0), 4)
-
+    detection.draw_aruco_markers(new_image, corners, ids)
     return new_image
 
 
@@ -63,10 +56,8 @@ def main():
 
     # Compute homography
     known_markers_positions = {
-        2: vision.convert_marker_position_to_points(
-            vision.MarkerPosition(99, 78.5, 0, 7, vision.MarkerRotation.BOTTOM_LEFT)),
-        6: vision.convert_marker_position_to_points(
-            vision.MarkerPosition(100, 180, 0, 7, vision.MarkerRotation.BOTTOM_LEFT)),
+        2: vision.marker_corner_positions(.99, .785, 0, .07, vision.MarkerRotation.BOTTOM_LEFT),
+        6: vision.marker_corner_positions(1., 1.8, 0, .07, vision.MarkerRotation.BOTTOM_LEFT),
     }
     known_ids = list(known_markers_positions.keys())
     H = vision.compute_homography(corners, ids, known_markers_positions)

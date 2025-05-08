@@ -24,12 +24,12 @@ class RobotColor(IntEnum):
 class Robot:
     def __init__(self, position: Position, color: RobotColor):
         self.position = position
-        self.size = 30  # 30cm cube
+        self.size = .3  # 30cm cube
         self.color = color
 
     def draw(self, plotter: pv.Plotter):
         # Cube at robot position
-        center = (self.position.x, self.position.y, -self.size / 2)
+        center = (self.position.x, self.position.y, self.size / 2)
         cube = pv.Cube(
             center=center,
             x_length=self.size,
@@ -42,11 +42,11 @@ class Robot:
 
         # Direction line
         length = self.size / 2
-        start = (self.position.x, self.position.y, -(self.size + 1))  # 1cm above cube
+        start = (self.position.x, self.position.y, self.size + 1)  # 1cm above cube
         end = (
             self.position.x + math.cos(self.position.theta) * length,
             self.position.y + math.sin(self.position.theta) * length,
-            -(self.size + 1)
+            self.size + 1
         )
         arrow = pv.Line(start, end)
         plotter.add_mesh(arrow, color='red')
@@ -55,12 +55,11 @@ class Robot:
 class TinCan:
     def __init__(self, position: Position):
         self.position = position
-        self.radius = 3.3  # tin can radius
-        self.height = 11.5  # tin can height
+        self.radius = .033  # tin can radius
+        self.height = .115  # tin can height
 
     def draw(self, plotter: pv.Plotter):
-        can = pv.Cylinder(center=(self.position.x, self.position.y, self.position.z - self.height / 2),
-                          direction=(0, 0, 1),
+        can = pv.Cylinder(center=(self.position.x, self.position.y, self.position.z + self.height / 2),
                           radius=self.radius,
                           height=self.height)
         plotter.add_mesh(can, color='silver')
@@ -108,8 +107,8 @@ class Webcam:
 
 class World:
     def __init__(self, blocking=True, off_screen=False):
-        self.width = 300  # 300cm
-        self.length = 200  # 200cm
+        self.width = 3  # meters
+        self.length = 2  # meters
         self.robots = []
         self.tin_cans = []
         self.webcams = {}
@@ -119,9 +118,9 @@ class World:
         # Initialize plotter
         self.plotter = pv.Plotter(off_screen=self.off_screen)
         self.plotter.window_size = (1920, 800)
-        self.plotter.camera.position = (150, -200, -200)
-        self.plotter.camera.focal_point = (150, 100, 0)  # Look at center of board
-        self.plotter.camera.up = (0, 0, -1)  # Z is down
+        self.plotter.camera.position = (1.5, -2, 2)
+        self.plotter.camera.focal_point = (1.5, 1, 0)  # Look at center of board
+        self.plotter.camera.up = (0, 0, 1)
 
         # Load the ground plane's texture
         self.plane = pv.Plane(center=(self.width / 2, self.length / 2, 0),
@@ -131,8 +130,6 @@ class World:
         try:
             tex = pv.read_texture('assets/playmat.png')
             self.plane.texture_map_to_plane(inplace=True)
-            self.plane.point_data["Texture Coordinates"] *= [-1,
-                                                             -1]  # Flip UV mapping, as we look from reverse side (z<0)
             self.plane.active_texture = tex
         except Exception as e:
             print(f"Error loading texture: {e}")

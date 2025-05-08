@@ -1,3 +1,7 @@
+# ----------------
+# Find the field's Aruco markers and estimate the camera's pose.
+# ----------------
+
 import cv2 as cv
 
 from lib import common, camera, detection, vision
@@ -16,18 +20,14 @@ def main():
     while True:
         _, image = cap.read()
         corners, ids, _rejected = aruco_detector.detectMarkers(image)
-
-        for id, corner in zip(ids, corners):
-            cv.drawContours(image, corner.astype(int), -1, (0, 0, 255), 4)
-            cv.circle(image, corner[0][0].astype(int), 8, (0, 0, 255), 8)
-            cv.circle(image, corner[0][1].astype(int), 6, (0, 0, 255), 2)
+        detection.draw_aruco_markers(image, corners, ids)
 
         ret, rvec, tvec = \
             vision.estimate_pose(corners, ids, vision.MarkerPositions, camera_matrix, dist_coeffs)
         if ret:
             euler = vision.rodrigues_to_euler(rvec)
             camera_pos = vision.get_camera_position(rvec, tvec)
-            print(f"Camera Position (mm): X={camera_pos[0]:.1f}, Y={camera_pos[1]:.1f}, Z={camera_pos[2]:.1f}")
+            print(f"Camera Position (m): X={camera_pos[0]:.3f}, Y={camera_pos[1]:.3f}, Z={camera_pos[2]:.3f}")
             print(f"Camera Rotation (deg): Roll={euler[0]:.1f}, Pitch={euler[1]:.1f}, Yaw={euler[2]:.1f}")
 
         common.show_in_window("image", image)

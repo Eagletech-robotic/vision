@@ -8,7 +8,7 @@ from lib.visualisation import World, Robot, Position, TinCan, Webcam, RobotColor
 from lib import common, camera, detection, vision
 
 
-def add_objects(H, corners, ids, world):
+def reset_objects(H, corners, ids, world):
     world.empty()
 
     for id, corner in zip(ids, corners):
@@ -25,13 +25,16 @@ def add_objects(H, corners, ids, world):
 
         # Add known markers to the world
         if marker_id == vision.MarkerId.TIN_CAN:
+            print(f"Adding tin can at {world_point}")
             world.add_tin_can(TinCan(Position(world_point[0], world_point[1])))
 
-        elif marker_id == vision.MarkerId.ROBOT_BLUE:
+        elif vision.MarkerId.ROBOT_BLUE_LO <= marker_id <= vision.MarkerId.ROBOT_BLUE_HI:
+            print(f"Adding blue robot at {world_point}")
             robot = Robot(Position(world_point[0], world_point[1], theta=math.radians(0)), RobotColor.BLUE)
             world.add_robot(robot)
 
-        elif marker_id == vision.MarkerId.ROBOT_YELLOW:
+        elif vision.MarkerId.ROBOT_YELLOW_LO <= marker_id <= vision.MarkerId.ROBOT_YELLOW_HI:
+            print(f"Adding yellow robot at {world_point}")
             robot = Robot(Position(world_point[0], world_point[1], theta=math.radians(180)), RobotColor.YELLOW)
             world.add_robot(robot)
 
@@ -49,24 +52,6 @@ def main():
     # Initialize world
     world = World(blocking=False)
 
-    # Compute homography
-    print("Compute the homography matrix")
-    ret, image = cap.read()
-    corners, ids, rejected = aruco_detector.detectMarkers(image)
-    common.show_in_window("image", image)
-
-    known_markers_positions = {
-        vision.MarkerId.BOARD_BOTTOM_LEFT: vision.convert_marker_position_to_points(
-            vision.MarkerPosition(50, 50, 0, 8, vision.MarkerRotation.TOP_LEFT)),
-        vision.MarkerId.BOARD_TOP_LEFT: vision.convert_marker_position_to_points(
-            vision.MarkerPosition(50, 150, 0, 8, vision.MarkerRotation.TOP_LEFT)),
-        vision.MarkerId.BOARD_BOTTOM_RIGHT: vision.convert_marker_position_to_points(
-            vision.MarkerPosition(250, 50, 0, 8, vision.MarkerRotation.TOP_LEFT)),
-        vision.MarkerId.BOARD_TOP_RIGHT: vision.convert_marker_position_to_points(
-            vision.MarkerPosition(250, 150, 0, 8, vision.MarkerRotation.TOP_LEFT)),
-    }
-    H = vision.compute_homography(corners, ids, known_markers_positions)
-
     # Main loop
     print("\nTo quit, select the live camera window and press 'q'.\n")
     running = True
@@ -75,10 +60,16 @@ def main():
         # Take a picture and detect ArUco markers
         ret, image = cap.read()
         corners, ids, rejected = aruco_detector.detectMarkers(image)
+        detection.draw_aruco_markers(image, corners, ids)
         common.show_in_window("image", image)
 
-        # Add objects to the world
-        add_objects(H, corners, ids, world)
+        # Check if any markers were detected
+        if ids is not None and len(ids) > 0:
+            # Try to compute the homography
+            ret, H = vision.compute_homography(corners, ids, vision.MarkerPositions)
+            if ret is not None:
+                # Add objects to the world
+                reset_objects(H, corners, ids, world)
 
         # Draw the world and check if the user wants to quit
         world.render()

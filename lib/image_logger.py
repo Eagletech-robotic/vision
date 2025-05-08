@@ -16,7 +16,6 @@ class ImageLogger:
 
     def _create_folder(self):
         now = datetime.now()
-        folder_name = now.strftime('%Y%m%d_%H%M%S')
-        folder_path = os.path.join('logs', folder_name)
-        os.makedirs(os.path.dirname(folder_path))
+        folder_path = os.path.join('logs', now.strftime('%Y%m%d_%H%M%S'))
+        os.makedirs(folder_path)
         return folder_path

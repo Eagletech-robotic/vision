@@ -34,7 +34,7 @@ def main():
 
         if ret:
             camera_pos = vision.get_camera_position(rvec, tvec)
-            print(f"  Camera Position (mm): X={camera_pos[0]:.1f}, Y={camera_pos[1]:.1f}, Z={camera_pos[2]:.1f}")
+            print(f"  Camera Position: X={camera_pos[0]:.3f}, Y={camera_pos[1]:.3f}, Z={camera_pos[2]:.3f}")
 
         for id, corner in zip(ids, corners):
             marker_id = id[0]
