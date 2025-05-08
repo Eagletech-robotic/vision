@@ -48,9 +48,19 @@ def print_fields(params):
                 print(f"{attr}: {value}")
 
 
-def put_text_with_background(img, text, position, font=cv.FONT_HERSHEY_SIMPLEX,
-                             font_scale=1, text_color=(255, 255, 255),
-                             bg_color=(0, 0, 0), thickness=2, padding=5):
+DEFAULT_FONT = cv.FONT_HERSHEY_SIMPLEX
+DEFAULT_TEXT_COLOR = (255, 255, 255)
+DEFAULT_FONT_THICKNESS = 2
+
+
+def draw_text(img, text, position,
+              font=DEFAULT_FONT, font_scale=1, text_color=DEFAULT_TEXT_COLOR, thickness=DEFAULT_FONT_THICKNESS):
+    cv.putText(img, text, position, font, 1, text_color, thickness)
+
+
+def draw_text_with_background(img, text, position,
+                              font=DEFAULT_FONT, font_scale=1, text_color=DEFAULT_TEXT_COLOR,
+                              bg_color=(0, 0, 0), thickness=DEFAULT_FONT_THICKNESS, padding=5):
     (text_width, text_height), baseline = cv.getTextSize(text, font, font_scale, thickness)
     x, y = position
     bg_rect = (

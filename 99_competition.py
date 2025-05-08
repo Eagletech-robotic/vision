@@ -1,5 +1,4 @@
 import math
-
 import pygame
 import cv2 as cv
 
@@ -11,19 +10,6 @@ from models.stream import Stream
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
 CAMERA_NAME = "W4DS--SN0001"
-
-BLEACHERS_DEFAULT = [
-    # (0.075, 0.400, math.pi / 2),
-    # (0.075, 1.325, math.pi / 2),
-    # (0.775, 0.250, 0.0),
-    # (0.825, 1.725, 0.0),
-    # (1.100, 0.950, 0.0),
-    # (3.0 - 0.075, 0.400, math.pi / 2),
-    (3.0 - 0.075, 1.325, math.pi / 2),
-    # (3.0 - 0.775, 0.250, 0.0),
-    # (3.0 - 0.825, 1.725, 0.0),
-    # (3.0 - 1.100, 0.950, 0.0),
-]
 
 
 def init_streams():
@@ -88,19 +74,8 @@ def main():
             image_logger.append(board_img)
 
             # Send Bluetooth frame
-            if world.robot_x_cm is not None:
-                robot_pose = (world.robot_x, world.robot_y, math.radians(world.robot_orientation_deg))
-            else:
-                robot_pose = None
             frame = eagle_packet.frame_payload(
-                eagle_packet.build_payload(
-                    robot_colour=world.team_color or "blue",
-                    robot_detected=True if robot_pose else False,
-                    robot_pose=robot_pose if robot_pose else (0.0, 0.0, 0.0),
-                    opponent_detected=False,
-                    opponent_pose=(0.0, 0.0, 0.0),
-                    bleachers=BLEACHERS_DEFAULT,
-                )
+                world.to_eagle_packet()
             )
             ble_robot.update_frame(frame)
             print(f"Enqueue frame: {frame.hex()} {eagle_packet.frame_to_human(frame)}")

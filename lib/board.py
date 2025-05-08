@@ -78,10 +78,6 @@ def draw_interface_debug(capture_1, capture_2, world):
     insert_capture(capture_2.debug_image(), IMAGE_WIDTH - mini_width - 100, 50)
     insert_capture(world.debug_image(), (IMAGE_WIDTH - mini_width) // 2, 80 + mini_height)
 
-    # Save image to board.png
-    board_img_path = os.path.join(os.path.dirname(__file__), "../logs/board.png")
-    cv.imwrite(board_img_path, img)
-
     return img
 
 

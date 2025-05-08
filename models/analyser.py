@@ -22,9 +22,9 @@ def _robot_pose_from_capture(capture, team_color: str):
     if ids is None:
         return None
 
-    # tag id range to keep
-    lo = vision.MarkerId.ROBOT_BLUE_LO if team_color == "blue" else vision.MarkerId.ROBOT_YELLOW_LO
-    hi = vision.MarkerId.ROBOT_BLUE_HI if team_color == "blue" else vision.MarkerId.ROBOT_YELLOW_HI
+    # Tag id range to look for the robot
+    lo, hi = (vision.MarkerId.ROBOT_BLUE_LO, vision.MarkerId.ROBOT_BLUE_HI) if team_color == "blue" \
+        else (vision.MarkerId.ROBOT_YELLOW_LO, vision.MarkerId.ROBOT_YELLOW_HI)
 
     cam_rvec, cam_tvec, *_ = pose
     K, D = capture.camera_matrix, capture.dist_coeffs
@@ -67,10 +67,10 @@ def generate_world(capture_1, capture_2, persistent_state):
     world.team_color = _find_team_color([capture_1, capture_2]) or persistent_state.team_color
 
     if world.team_color:
-        for cap in (capture_1, capture_2):
-            pose = _robot_pose_from_capture(cap, world.team_color)
+        for capture in (capture_1, capture_2):
+            pose = _robot_pose_from_capture(capture, world.team_color)
             if pose:
-                world.robot_x, world.robot_y, world.robot_orientation_deg = pose
+                world.robot_x, world.robot_y, world.robot_orientation = pose
                 break
 
     return world, persistent_state

@@ -1,7 +1,5 @@
-from lib import detection, vision
+from lib import detection, vision, common
 import cv2 as cv
-
-from lib.common import put_text_with_background
 
 
 class Capture:
@@ -42,28 +40,23 @@ class Capture:
         return self.last_pose
 
     def debug_image(self):
-        img_width, img_height = 1920, 1080
-        img = cv.resize(self.image, (img_width, img_height))
+        """Generate an image of the capture augmented with detected markers and pose."""
+        IMG_WIDTH, IMG_HEIGHT = 1920, 1080
+
+        # Create a black image
+        img = cv.resize(self.image, (IMG_WIDTH, IMG_HEIGHT))
 
         # Show pose
         pose = self.estimate_pose()
         x, y, z = pose[2] if pose else (0, 0, 0)
-        put_text_with_background(img, f"X:{x:.0f} Y:{y:.0f} Z:{z:.0f}", (10, 30),
-                                 cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        common.draw_text_with_background(img, f"X:{x:.0f} Y:{y:.0f} Z:{z:.0f}", (10, 30))
         # Show euler angles
         if pose:
             roll, pitch, yaw = pose[3]
-            put_text_with_background(img, f"Roll:{roll:.0f} Pitch:{pitch:.0f} Yaw:{yaw:.0f}", (10, 70),
-                                     cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            common.draw_text_with_background(img, f"Roll:{roll:.0f} Pitch:{pitch:.0f} Yaw:{yaw:.0f}", (10, 70))
 
         # Show the detected markers
         corners, ids = self._detection()
-        if ids is not None:
-            for i, corner in enumerate(corners):
-                cv.polylines(img, [corner[0].astype(int)], True, (0, 255, 0), 2)
-                put_text_with_background(
-                    img, str(ids[i][0]), tuple(corner[0][0].astype(int)), font_scale=1,
-                    text_color=(255, 255, 255), bg_color=(0, 0, 0), thickness=2, padding=5
-                )
+        detection.draw_aruco_markers(img, corners, ids)
 
         return img
