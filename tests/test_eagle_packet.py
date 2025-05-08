@@ -32,8 +32,8 @@ def test_manual_bit_pattern_one_object():
     # Build the same payload with the Python encoder
     generated_payload = build_payload(
         robot_colour="blue",
-        robot_pose=(0.10, 0.20, math.radians(30)),  # 10 cm, 20 cm, 30°
-        opponent_pose=(0.05, 0.06, math.radians(-90)),  # 5 cm, 6 cm, −90°
+        robot_pose=(0.10, 0.20, math.radians(210)),  # 10 cm, 20 cm, 210°
+        opponent_pose=(0.05, 0.06, math.radians(90)),  # 5 cm, 6 cm, 90°
         bleachers=[(0.14, 0.32, math.radians(60))],  # one bleacher 14 cm, 32 cm, 60°
         robot_detected=True,
         opponent_detected=True,
