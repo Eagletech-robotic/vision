@@ -4,6 +4,7 @@ import pygame
 import cv2 as cv
 
 from lib import board, eagle_packet, camera, common, ble_robot
+from lib.image_logger import ImageLogger
 from models import analyser
 from models.persistent_state import PersistentState
 from models.stream import Stream
@@ -58,6 +59,7 @@ def main():
     stream_1, stream_2 = init_streams()
 
     screen, clock = init_pygame()
+    image_logger = ImageLogger()
 
     try:
         persistent_state = PersistentState()
@@ -83,6 +85,7 @@ def main():
             else:
                 board_img = board.draw_interface(world.team_color, world.score)
             show_cv_image(screen, board_img)
+            image_logger.append(board_img)
 
             # Send Bluetooth frame
             if world.robot_x_cm is not None:
