@@ -11,16 +11,20 @@ from bleak import BleakClient
 #
 # ble-serial creates a virtual serial port over BLE:
 # - Scan for BLE devices:
-#   `./venv/bin/ble-scan`
+#   `./.venv/bin/ble-scan`
 # - Connect to a BLE device:
-#   `./venv/bin/ble-serial -d 68:5E:1C:26:76:7C`
+#   `./.venv/bin/ble-serial -d 68:5E:1C:26:76:7C`
 #   This creates a symlink in /tmp/ttyBLE. You can then run `minicom -b 9600 -D /tmp/ttyBLE` and type in the terminal.
 #   The data will be sent to the BLE device and received via the other minicom.
 
 # Replace with your robot's BLE address and characteristic UUID
-ROBOT_BLE_ADDRESS = "68:5E:1C:26:76:7C"
+ROBOT_BLE_ADDRESS = "68:5E:1C:31:9E:4B"
+TEST_BOARD_BLE_ADDRESS = "68:5E:1C:26:76:7C"
+BLE_ADDRESS = ROBOT_BLE_ADDRESS # Change to TEST_BOARD_BLE_ADDRESS for the board
+
 CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
-FRAME_LENGTH = 20
+FRAME_LENGTH = 130  # Length of the frame to be sent (in bytes)
+TIMEOUT_MS = 15.0  # Timeout for BLE operations in milliseconds
 
 # Shared frame and lock for thread safety
 frame = bytearray(FRAME_LENGTH)  # Default frame of FRAME_LENGTH octets
@@ -30,7 +34,7 @@ frame_lock = threading.Lock()
 async def is_device_connected():
     """Checks if the BLE device is currently connected to the laptop."""
     try:
-        output = subprocess.check_output(["bluetoothctl", "info", ROBOT_BLE_ADDRESS], text=True)
+        output = subprocess.check_output(["bluetoothctl", "info", BLE_ADDRESS], text=True)
         return "Connected: yes" in output
     except subprocess.CalledProcessError:
         return False  # Device not found
@@ -39,7 +43,7 @@ async def is_device_connected():
 async def disconnect_device():
     """Forces the BLE device to disconnect if it's already connected."""
     try:
-        subprocess.run(["bluetoothctl", "disconnect", ROBOT_BLE_ADDRESS], check=True)
+        subprocess.run(["bluetoothctl", "disconnect", BLE_ADDRESS], check=True)
         print("Forced device disconnection.")
         await asyncio.sleep(2)  # Give it a moment to disconnect
     except subprocess.CalledProcessError:
@@ -54,7 +58,7 @@ async def send_frame():
         print("Device is already connected. Disconnecting...")
         await disconnect_device()
 
-    client = BleakClient(ROBOT_BLE_ADDRESS, timeout=15.0)
+    client = BleakClient(BLE_ADDRESS, timeout=TIMEOUT_MS)
 
     try:
         await client.connect()
