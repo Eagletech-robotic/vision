@@ -26,7 +26,7 @@ def z_world(marker_id):
     if marker_id == MarkerId.TIN_CAN:
         return .085
     elif MarkerId.ROBOT_BLUE_LO <= marker_id <= MarkerId.ROBOT_YELLOW_HI:
-        return .32
+        return .51
     else:
         return 0
 

@@ -37,10 +37,10 @@ def _bits_to_bytes(bits: List[int]) -> bytes:
 def build_payload(
         robot_colour: str,  # "blue" or "yellow"
         robot_detected: bool,
-        robot_pose: Tuple[float, float, float],  # x_m, y_m, yaw_rad
+        robot_pose: Tuple[float, float, float],  # x, y, yaw_rad
         opponent_detected: bool,
-        opponent_pose: Tuple[float, float, float],  # x_m, y_m, yaw_rad
-        bleachers: List[Tuple[float, float, float]],  # list[(x_m, y_m, yaw_rad)]
+        opponent_pose: Tuple[float, float, float],  # x, y, yaw_rad
+        bleachers: List[Tuple[float, float, float]],  # list[(x, y, yaw_rad)]
 ) -> bytes:
     """
     Build the 128‑byte Eagle payload (no starter / checksum).
@@ -85,10 +85,10 @@ def build_payload(
     _push_bits(bits, 0, 3)  # padding bits 61-63
 
     # ───────── objects ───────────────────────────────────────────────
-    for x_m, y_m, yaw_rad in bleachers:
+    for x, y, yaw_rad in bleachers:
         _push_bits(bits, 0, 2)  # type 0 = Bleacher
-        raw_x = round(to_cm(x_m) * 63 / 300) & 0x3F
-        raw_y = round(to_cm(y_m) * 31 / 200) & 0x1F
+        raw_x = round(to_cm(x) * 63 / 300) & 0x3F
+        raw_y = round(to_cm(y) * 31 / 200) & 0x1F
         _push_bits(bits, raw_x, 6)
         _push_bits(bits, raw_y, 5)
         _push_bits(bits, round(to_deg(yaw_rad) / 30) & 0x7, 3)

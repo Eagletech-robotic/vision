@@ -89,11 +89,7 @@ def main():
 
             # Send Bluetooth frame
             if world.robot_x_cm is not None:
-                robot_pose = (
-                    world.robot_x_cm / 100.0,  # cm → m
-                    (200.0 - world.robot_y_cm) / 100.0,
-                    math.radians(world.robot_orientation_deg)
-                )
+                robot_pose = (world.robot_x, world.robot_y, math.radians(world.robot_orientation_deg))
             else:
                 robot_pose = None
             frame = eagle_packet.frame_payload(

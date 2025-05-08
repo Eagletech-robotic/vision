@@ -13,7 +13,7 @@ def _find_team_color(captures):
 
 
 def _robot_pose_from_capture(capture, team_color: str):
-    """Return (x_cm, y_cm, theta_deg) or None if tag not seen."""
+    """Return (x, y, theta_deg) or None if tag not seen."""
     pose = capture.estimate_pose()
     if pose is None:
         return None
@@ -37,16 +37,15 @@ def _robot_pose_from_capture(capture, team_color: str):
         world_points = []
         for p in tag_corners[0]:
             world_point = vision.image_to_world_point(
-                p, z_world=-51.0,
+                p, z_world=.51,
                 rvec=cam_rvec, tvec=cam_tvec,
                 camera_matrix=K, dist_coeffs=D
             )
             world_points.append(world_point)
         world_points = np.array(world_points)  # shape (4,3)
 
-        centre_mm = world_points.mean(axis=0)
-        x_cm = centre_mm[0]
-        y_cm = centre_mm[1]
+        centre = world_points.mean(axis=0)
+        x, y = centre[:2]
 
         # orientation: vector along tag local +X (corner0 → corner3)
         dx, dy = world_points[3][:2] - world_points[0][:2]
@@ -57,7 +56,7 @@ def _robot_pose_from_capture(capture, team_color: str):
         elif theta_deg < -180:
             theta_deg += 360
 
-        return x_cm, y_cm, theta_deg
+        return x, y, theta_deg
     return None
 
 
@@ -71,7 +70,7 @@ def generate_world(capture_1, capture_2, persistent_state):
         for cap in (capture_1, capture_2):
             pose = _robot_pose_from_capture(cap, world.team_color)
             if pose:
-                world.robot_x_cm, world.robot_y_cm, world.robot_orientation_deg = pose
+                world.robot_x, world.robot_y, world.robot_orientation_deg = pose
                 break
 
     return world, persistent_state
