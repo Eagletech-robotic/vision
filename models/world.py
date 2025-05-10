@@ -4,16 +4,16 @@ import numpy as np
 from lib import eagle_packet, common
 
 BLEACHERS_DEFAULT = [
-    # (0.075, 0.400, math.pi / 2),
-    # (0.075, 1.325, math.pi / 2),
-    # (0.775, 0.250, 0.0),
-    # (0.825, 1.725, 0.0),
-    # (1.100, 0.950, 0.0),
-    # (3.0 - 0.075, 0.400, math.pi / 2),
+    (0.075, 0.400, math.pi / 2),
+    (0.075, 1.325, math.pi / 2),
+    (0.775, 0.250, 0.0),
+    (0.825, 1.725, 0.0),
+    (1.100, 0.950, 0.0),
+    (3.0 - 0.075, 0.400, math.pi / 2),
     (3.0 - 0.075, 1.325, math.pi / 2),
-    # (3.0 - 0.775, 0.250, 0.0),
-    # (3.0 - 0.825, 1.725, 0.0),
-    # (3.0 - 1.100, 0.950, 0.0),
+    (3.0 - 0.775, 0.250, 0.0),
+    (3.0 - 0.825, 1.725, 0.0),
+    (3.0 - 1.100, 0.950, 0.0),
 ]
 
 
@@ -35,15 +35,14 @@ class World:
         self.bleachers = BLEACHERS_DEFAULT
 
     def to_eagle_packet(self):
-        robot_pose = (self.robot_x, self.robot_y, self.robot_theta) if self.robot_x is not None else None
-        opponent_pose = \
-            (self.opponent_x, self.opponent_y, self.opponent_theta) if self.opponent_x is not None else None
+        robot_pose = (self.robot_x, self.robot_y, self.robot_theta) if self.robot_detected else None
+        opponent_pose = (self.opponent_x, self.opponent_y, self.opponent_theta) if self.opponent_detected else None
 
         return eagle_packet.build_payload(
             robot_colour=self.team_color or "blue",
-            robot_detected=bool(robot_pose),
+            robot_detected=self.robot_detected,
             robot_pose=robot_pose or (0.0, 0.0, 0.0),
-            opponent_detected=bool(opponent_pose),
+            opponent_detected=self.opponent_detected,
             opponent_pose=opponent_pose or (0.0, 0.0, 0.0),
             bleachers=self.bleachers,
         )
