@@ -50,7 +50,7 @@ class Analyser:
         for tag_id in range(tag_lo, tag_hi + 1):
             opponent_corners[tag_id] = vision.marker_corner_positions(
                 0, 0, vision.MarkerHeight.OPPONENT_MARKER, vision.MarkerSize.OPPONENT_MARKER,
-                vision.MarkerRotation.TOP_LEFT
+                vision.MarkerRotation.TOP_RIGHT
             )
         return opponent_corners
 

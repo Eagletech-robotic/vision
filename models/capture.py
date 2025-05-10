@@ -46,16 +46,15 @@ class Capture:
         # Copy the image
         img = self.image.copy()
 
-        # Show pose
+        # Show camera position and angles
         pose = self.estimate_pose()
-        x, y, z = pose[2] if pose else (0, 0, 0)
-        common.draw_text_with_background(img, f"X:{x:.0f} Y:{y:.0f} Z:{z:.0f}", (10, 30))
-        # Show euler angles
         if pose:
+            x, y, z = pose[2]
+            common.draw_text_with_background(img, f"X:{x:.2f} Y:{y:.2f} Z:{z:.2f}", (10, 30))
             roll, pitch, yaw = pose[3]
-            common.draw_text_with_background(img, f"Roll:{roll:.0f} Pitch:{pitch:.0f} Yaw:{yaw:.0f}", (10, 70))
+            common.draw_text_with_background(img, f"Roll:{roll:.1f} Pitch:{pitch:.1f} Yaw:{yaw:.1f}", (10, 70))
 
-        # Show the detected markers
+        # Draw contours around detected markers
         corners, ids = self._detection()
         detection.draw_aruco_markers(img, corners, ids)
 
