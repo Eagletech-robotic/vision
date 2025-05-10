@@ -12,7 +12,7 @@ class MarkerHeight:
 
 class MarkerSize:
     """Width of the marker"""
-    OUR_MARKER = 0.074
+    OUR_MARKER = 0.076
     OPPONENT_MARKER = 0.07
     FIELD_MARKER = 0.1
 
@@ -74,11 +74,11 @@ FIELD_MARKERS = {
 
 OUR_ROBOT_MARKERS = {
     MarkerId.OUR_ROBOT_FRONT_RIGHT: marker_corner_positions(
-        0.07, -0.115, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
+        0.01, -0.105, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
     MarkerId.OUR_ROBOT_REAR_LEFT: marker_corner_positions(
-        -0.04, 0.08, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
+        -0.077, 0.105, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
     MarkerId.OUR_ROBOT_REAR_RIGHT: marker_corner_positions(
-        -0.04, -0.115, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
+        -0.077, -0.105, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
 }
 
 
