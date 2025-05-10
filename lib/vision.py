@@ -3,6 +3,20 @@ import numpy as np
 from enum import IntEnum
 
 
+class MarkerHeight:
+    """Height of the markers in meters"""
+    TIN_CAN = 0.085
+    OUR_MARKER = 0.35
+    OPPONENT_MARKER = 0.43
+
+
+class MarkerSize:
+    """Width of the marker"""
+    OUR_MARKER = 0.074
+    OPPONENT_MARKER = 0.07
+    FIELD_MARKER = 0.1
+
+
 class MarkerId(IntEnum):
     TIN_CAN = 47
     BOARD_TOP_LEFT = 20
@@ -27,9 +41,9 @@ class MarkerRotation(IntEnum):
 
 def z_world(marker_id):
     if marker_id == MarkerId.TIN_CAN:
-        return .085
+        return MarkerHeight.TIN_CAN
     elif MarkerId.ROBOT_BLUE_LO <= marker_id <= MarkerId.ROBOT_YELLOW_HI:
-        return .51
+        return MarkerHeight.OPPONENT_MARKER
     else:
         return 0
 
@@ -48,16 +62,23 @@ def marker_corner_positions(x, y, z, size, rotation: MarkerRotation):
 
 
 FIELD_MARKERS = {
-    MarkerId.BOARD_BOTTOM_LEFT: marker_corner_positions(0.6, 0.6, 0, 0.1, MarkerRotation.TOP_LEFT),
-    MarkerId.BOARD_BOTTOM_RIGHT: marker_corner_positions(2.4, 0.6, 0, 0.1, MarkerRotation.TOP_LEFT),
-    MarkerId.BOARD_TOP_LEFT: marker_corner_positions(0.6, 1.4, 0, 0.1, MarkerRotation.TOP_LEFT),
-    MarkerId.BOARD_TOP_RIGHT: marker_corner_positions(2.4, 1.4, 0, 0.1, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_BOTTOM_LEFT: marker_corner_positions(
+        0.6, 0.6, 0, MarkerSize.FIELD_MARKER, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_BOTTOM_RIGHT: marker_corner_positions(
+        2.4, 0.6, 0, MarkerSize.FIELD_MARKER, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_TOP_LEFT: marker_corner_positions(
+        0.6, 1.4, 0, MarkerSize.FIELD_MARKER, MarkerRotation.TOP_LEFT),
+    MarkerId.BOARD_TOP_RIGHT: marker_corner_positions(
+        2.4, 1.4, 0, MarkerSize.FIELD_MARKER, MarkerRotation.TOP_LEFT),
 }
 
 OUR_ROBOT_MARKERS = {
-    MarkerId.OUR_ROBOT_FRONT_RIGHT: marker_corner_positions(0.07, -0.115, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
-    MarkerId.OUR_ROBOT_REAR_LEFT: marker_corner_positions(-0.04, 0.08, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
-    MarkerId.OUR_ROBOT_REAR_RIGHT: marker_corner_positions(-0.04, -0.115, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
+    MarkerId.OUR_ROBOT_FRONT_RIGHT: marker_corner_positions(
+        0.07, -0.115, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
+    MarkerId.OUR_ROBOT_REAR_LEFT: marker_corner_positions(
+        -0.04, 0.08, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
+    MarkerId.OUR_ROBOT_REAR_RIGHT: marker_corner_positions(
+        -0.04, -0.115, MarkerHeight.OUR_MARKER, MarkerSize.OUR_MARKER, MarkerRotation.BOTTOM_LEFT),
 }
 
 
