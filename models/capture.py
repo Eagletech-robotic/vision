@@ -43,8 +43,8 @@ class Capture:
         """Generate an image of the capture augmented with detected markers and pose."""
         IMG_WIDTH, IMG_HEIGHT = 1920, 1080
 
-        # Create a black image
-        img = cv.resize(self.image, (IMG_WIDTH, IMG_HEIGHT))
+        # Copy the image
+        img = self.image.copy()
 
         # Show pose
         pose = self.estimate_pose()
@@ -58,5 +58,8 @@ class Capture:
         # Show the detected markers
         corners, ids = self._detection()
         detection.draw_aruco_markers(img, corners, ids)
+
+        # Resize
+        img = cv.resize(img, (IMG_WIDTH, IMG_HEIGHT))
 
         return img

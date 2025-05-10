@@ -55,9 +55,9 @@ FIELD_MARKERS = {
 }
 
 OUR_ROBOT_MARKERS = {
-    MarkerId.OUR_ROBOT_FRONT_RIGHT: marker_corner_positions(0.115, 0.07, 0.35, 0.074, MarkerRotation.TOP_LEFT),
-    MarkerId.OUR_ROBOT_REAR_LEFT: marker_corner_positions(-0.08, -0.04, 0.35, 0.074, MarkerRotation.BOTTOM_RIGHT),
-    MarkerId.OUR_ROBOT_REAR_RIGHT: marker_corner_positions(0.115, -0.04, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
+    MarkerId.OUR_ROBOT_FRONT_RIGHT: marker_corner_positions(0.07, -0.115, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
+    MarkerId.OUR_ROBOT_REAR_LEFT: marker_corner_positions(-0.04, 0.08, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
+    MarkerId.OUR_ROBOT_REAR_RIGHT: marker_corner_positions(-0.04, -0.115, 0.35, 0.074, MarkerRotation.BOTTOM_LEFT),
 }
 
 

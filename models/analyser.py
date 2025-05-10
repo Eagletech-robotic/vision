@@ -41,16 +41,69 @@ class Analyser:
             return None
 
     def _robot_pose_from_capture(self, capture):
-        """ Return (x, y, theta_deg) or None if tag not seen."""
-        rvec, tvec, corners, ids = self._pose_corner_ids_from_capture(capture)
+        """Return (x, y, theta) in world frame, or None if no robot tag seen."""
+        ret = self._pose_corner_ids_from_capture(capture)
+        if ret is None:
+            return None
 
-        # TO BE DONE
+        rvec, tvec, corners, ids = ret
 
-        return None
+        # 2D coordinates of each corner in the robot frame centred at (0,0).
+        robot_2d_points = []
+        # 2D coordinates of each corner in the field / world reference frame.
+        world_2d_points = []
+
+        for tag_id, tag_corners in zip(ids, corners):
+            tag_id = int(tag_id[0])
+            if tag_id not in vision.OUR_ROBOT_MARKERS:
+                continue  # skip non‑robot tags
+
+            robot_corners = vision.OUR_ROBOT_MARKERS[tag_id]  # (4,3)
+
+            for i in range(4):
+                image_point = tag_corners[0][i]
+                world_point = vision.image_to_world_point(
+                    image_point, z_world=robot_corners[i][2],
+                    rvec=rvec, tvec=tvec,
+                    camera_matrix=capture.camera_matrix,
+                    dist_coeffs=capture.dist_coeffs
+                )
+                robot_2d_points.append(robot_corners[i][:2])
+                world_2d_points.append(world_point[:2])
+
+        if len(robot_2d_points) < 2:  # not enough data
+            return None
+
+        # Solve the 2‑D rigid‑body transform (rotation + translation) that best aligns the robot‑frame coordinates to
+        # the world‑frame ones using the least‑squares method.
+        P = np.asarray(robot_2d_points)
+        W = np.asarray(world_2d_points)
+
+        P_cent = P.mean(axis=0)
+        W_cent = W.mean(axis=0)
+        P_hat = P - P_cent
+        W_hat = W - W_cent
+
+        # 2‑D Umeyama/Kabsch closed form
+        num = np.sum(P_hat[:, 0] * W_hat[:, 1] - P_hat[:, 1] * W_hat[:, 0])
+        den = np.sum(P_hat[:, 0] * W_hat[:, 0] + P_hat[:, 1] * W_hat[:, 1])
+        theta = np.arctan2(num, den)
+
+        c, s = np.cos(theta), np.sin(theta)
+        R = np.array([[c, -s],
+                      [s, c]])
+        t = W_cent - R @ P_cent
+
+        x, y = t
+        return x, y, theta
 
     def _opponent_pose_from_capture(self, capture, our_color):
         """ Return (x, y, theta_deg) or None if tag not seen."""
-        rvec, tvec, corners, ids = self._pose_corner_ids_from_capture(capture)
+        ret = self._pose_corner_ids_from_capture(capture)
+        if ret is None:
+            return None
+
+        rvec, tvec, corners, ids = ret
 
         # Tag id range of the opponent robot
         opponent_lo, opponent_hi = \

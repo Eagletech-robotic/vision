@@ -53,7 +53,7 @@ class World:
         IMG_WIDTH, IMG_HEIGHT = 1920, 1080
 
         def positions(name, detected, x, y, theta):
-            return f"{name} X:{x:.3f} Y:{y:.3f} θ:{math.degrees(theta):.0f}°" if detected \
+            return f"{name} X:{x:.3f} Y:{y:.3f} theta:{math.degrees(theta):.0f}°" if detected \
                 else f"{name} not detected"
 
         # Create black image

@@ -15,9 +15,10 @@ def draw_aruco_markers(image, corners, ids):
         return
 
     for id, corner in zip(ids, corners):
-        center = corner[0].mean(axis=0).astype(int)
         cv.drawContours(image, corner.astype(int), -1, (0, 255, 0), 4)
         cv.circle(image, corner[0][0].astype(int), 5, (0, 0, 255), 5)
         cv.circle(image, corner[0][1].astype(int), 2, (128, 128, 255), 2)
+
+        center = corner[0].mean(axis=0).astype(int)
         cv.putText(image, str(id[0]), center,
                    cv.FONT_HERSHEY_SIMPLEX, 2.0, (0, 255, 0), 4)
