@@ -37,7 +37,7 @@ rx_buffer = ""
 
 
 def _clean_ansi_and_control(text: str) -> str:
-    """ strip ANSI sequences and non-printables (keep \n and \r)"""
+    """Strip ANSI sequences and non‑printables (keep \\n and \\r)"""
     text = re.sub(r'\x1b\[[0-9;]*[mK]', '', text)
     text = re.sub(r'\x1b\[H', '', text)
     text = re.sub(r'\x1b\[2J', '', text)
@@ -89,8 +89,7 @@ async def _disconnect_device():
 async def _send_frame():
     """Asynchronous function to send the frame periodically."""
     while True:
-        client = None
-
+        client = None  # ensure defined for finally‑block
         try:
             print("Connecting to the robot...")
 
