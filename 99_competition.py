@@ -46,6 +46,8 @@ def main():
     screen, clock = init_pygame()
     image_logger = ImageLogger()
 
+    ble_robot.start_ble_thread(ble_robot.MacAddress.ROBOT, nb_frames_per_second=5)
+
     try:
         persistent_state = PersistentState()
 

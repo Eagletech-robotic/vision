@@ -1,10 +1,10 @@
 import asyncio
+import bleak
 import threading
 import traceback
 import subprocess
 import re
 
-from bleak import BleakClient
 
 # To check reception of the data:
 # - Plug the FTDI module - which is connected to the HM10 module - into the USB port.
@@ -18,15 +18,15 @@ from bleak import BleakClient
 #   This creates a symlink in /tmp/ttyBLE. You can then run `minicom -b 9600 -D /tmp/ttyBLE` and type in the terminal.
 #   The data will be sent to the BLE device and received via the other minicom.
 
-# Replace with your robot's BLE address and characteristic UUID
-ROBOT_BLE_ADDRESS = "68:5E:1C:31:9E:4B"
-TEST_BOARD_BLE_ADDRESS = "68:5E:1C:26:76:7C"
-BLE_ADDRESS = ROBOT_BLE_ADDRESS  # Change to TEST_BOARD_BLE_ADDRESS for the board
+
+class MacAddress:
+    ROBOT = "68:5E:1C:31:9E:4B"
+    TEST_BOARD = "68:5E:1C:26:76:7C"
+
 
 CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
 FRAME_LENGTH = 130  # Length of the frame to be sent (in bytes)
-NB_FRAMES_PER_SECOND = 5  # Number of frames sent to the robot per second
-TIMEOUT = 15.0  # Timeout for BLE operations (in milliseconds)
+BLEAK_TIMEOUT = 10.0  # Timeout for BLE operations (in seconds)
 
 # Shared frame and lock for thread safety
 frame = bytearray(FRAME_LENGTH)  # Default frame of FRAME_LENGTH octets
@@ -67,37 +67,37 @@ def _on_packet_received(_, data: bytearray):
         print(f"[RX-hex] {data.hex()}\n")
 
 
-async def _is_device_connected():
+async def _is_device_connected(ble_address):
     """Checks if the BLE device is currently connected to the laptop."""
     try:
-        output = subprocess.check_output(["bluetoothctl", "info", BLE_ADDRESS], text=True)
+        output = subprocess.check_output(["bluetoothctl", "info", ble_address], text=True)
         return "Connected: yes" in output
     except subprocess.CalledProcessError:
         return False  # Device not found
 
 
-async def _disconnect_device():
+async def _disconnect_device(ble_address):
     """Forces the BLE device to disconnect if it's already connected."""
     try:
-        subprocess.run(["bluetoothctl", "disconnect", BLE_ADDRESS], check=True)
+        subprocess.run(["bluetoothctl", "disconnect", ble_address], check=True)
         print("Forced device disconnection.")
         await asyncio.sleep(2)  # Give it a moment to disconnect
     except subprocess.CalledProcessError:
         print("Failed to disconnect the device.")
 
 
-async def _send_frame():
+async def _send_frame(ble_address, nb_frames_per_second):
     """Asynchronous function to send the frame periodically."""
     while True:
         client = None  # ensure defined for finally‑block
         try:
             print("Connecting to the robot...")
 
-            if await _is_device_connected():
+            if await _is_device_connected(ble_address):
                 print("Device is already connected. Disconnecting...")
-                await _disconnect_device()
+                await _disconnect_device(ble_address)
 
-            client = BleakClient(BLE_ADDRESS, timeout=TIMEOUT_MS / 1000.0)
+            client = bleak.BleakClient(ble_address, timeout=BLEAK_TIMEOUT)
             await client.connect()
             await client.get_services()
 
@@ -123,17 +123,21 @@ async def _send_frame():
                 try:
                     for off in range(0, len(payload), chunk_size):
                         await client.write_gatt_char(rx_char, payload[off:off + chunk_size], response=False)
-                    print("Frame sent")
+                    print(f"Frame sent (chunk size: {chunk_size} bytes)")
 
                 except Exception as e:
                     print(f"Failed to send frame: {e}")
                     raise e
 
-                await asyncio.sleep(1.0 / NB_FRAMES_PER_SECOND)
+                await asyncio.sleep(1.0 / nb_frames_per_second)
+
+        except bleak.exc.BleakDeviceNotFoundError as e:
+            print(e)
 
         except Exception as e:
             print(f"Error: {e}")
             traceback.print_exc()
+
         finally:
             if client is not None:
                 try:
@@ -141,13 +145,14 @@ async def _send_frame():
                 except Exception:
                     pass
             print("Disconnected from the robot - will reconnect")
+            await asyncio.sleep(2.0)
 
 
-def _start_ble_thread():
+def _ble_thread(ble_address, nb_frames_per_second):
     """Starts the asyncio event loop in a separate thread."""
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(_send_frame())
+    loop.run_until_complete(_send_frame(ble_address, nb_frames_per_second))
 
 
 def update_frame(new_frame: bytes):
@@ -159,5 +164,6 @@ def update_frame(new_frame: bytes):
 
 
 # Start the BLE sender in a background thread
-ble_thread = threading.Thread(target=_start_ble_thread, daemon=True)
-ble_thread.start()
+def start_ble_thread(ble_address, nb_frames_per_second):
+    ble_thread = threading.Thread(target=_ble_thread, args=(ble_address, nb_frames_per_second), daemon=True)
+    ble_thread.start()
