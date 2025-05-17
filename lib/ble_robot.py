@@ -4,6 +4,7 @@ import threading
 import traceback
 import subprocess
 import re
+from datetime import datetime
 
 
 # To check reception of the data:
@@ -48,6 +49,11 @@ def _clean_ansi_and_control(text: str) -> str:
 
 def _on_packet_received(_, data: bytearray):
     global rx_buffer
+
+    def _timestamped_print(tag: str, message: str) -> None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        print(f"[{timestamp}] [{tag}] {message}", flush=True)
+
     try:
         chunk = data.decode("ascii", errors="replace")
         rx_buffer += _clean_ansi_and_control(chunk)
@@ -61,10 +67,10 @@ def _on_packet_received(_, data: bytearray):
             parts = rx_buffer.split('\n')
 
             for line in parts[:-1]:
-                print(f"[RX] {line}", flush=True)
+                _timestamped_print("RX", line)
             rx_buffer = parts[-1]
     except Exception:
-        print(f"[RX-hex] {data.hex()}\n")
+        _timestamped_print("RX-hex", data.hex())
 
 
 async def _is_device_connected(ble_address):
