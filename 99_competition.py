@@ -68,12 +68,13 @@ def main():
             analyser = Analyser(capture_1, capture_2)
             world, persistent_state = analyser.generate_world(persistent_state)
 
+            debug_board_img = board.draw_interface_debug(capture_1, capture_2, world)
             if debug_mode:
-                board_img = board.draw_interface_debug(capture_1, capture_2, world)
+                board_img = debug_board_img
             else:
                 board_img = board.draw_interface(world.team_color, world.score)
             show_cv_image(screen, board_img)
-            image_logger.append(board_img)
+            image_logger.append(debug_board_img)
 
             # Send Bluetooth frame
             frame = eagle_packet.frame_payload(
@@ -82,7 +83,7 @@ def main():
             ble_robot.update_frame(frame)
             print(f"Enqueue frame: {frame.hex()} {eagle_packet.frame_to_human(frame)}")
 
-            clock.tick(1)  # FPS
+            clock.tick(3)  # FPS
 
     except KeyboardInterrupt:
         print("User interrupted the program.")
