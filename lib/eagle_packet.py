@@ -91,7 +91,7 @@ def build_payload(
         raw_y = round(to_cm(y) * 31 / 200) & 0x1F
         _push_bits(bits, raw_x, 6)
         _push_bits(bits, raw_y, 5)
-        _push_bits(bits, round(to_deg(theta_rad) / 30) & 0x7, 3)
+        _push_bits(bits, round((to_deg(theta_rad) % 180) / 30) & 0x7, 3)
 
     return _bits_to_bytes(bits)  # exactly 128 bytes
 
