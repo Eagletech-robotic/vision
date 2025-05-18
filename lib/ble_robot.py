@@ -1,4 +1,6 @@
 import asyncio
+from collections import deque
+
 import bleak
 import threading
 import traceback
@@ -34,7 +36,11 @@ frame = bytearray(FRAME_LENGTH)  # Default frame of FRAME_LENGTH octets
 frame_lock = threading.Lock()
 
 # The buffer of received frames. Printed on screen as soon as we receive "\n".
-rx_buffer = ""
+stdout_buffer = ""
+
+# Buffer for external querying of last full lines
+external_buffer = deque(maxlen=1024)
+external_buffer_lock = threading.Lock()
 
 
 def _clean_ansi_and_control(text: str) -> str:
@@ -48,7 +54,7 @@ def _clean_ansi_and_control(text: str) -> str:
 
 
 def _on_packet_received(_, data: bytearray):
-    global rx_buffer
+    global stdout_buffer
 
     def _timestamped_print(tag: str, message: str) -> None:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -56,19 +62,21 @@ def _on_packet_received(_, data: bytearray):
 
     try:
         chunk = data.decode("ascii", errors="replace")
-        rx_buffer += _clean_ansi_and_control(chunk)
+        stdout_buffer += _clean_ansi_and_control(chunk)
 
         # Cap buffer size
-        if len(rx_buffer) > 4096:
-            rx_buffer = rx_buffer[-4096:]
+        if len(stdout_buffer) > 4096:
+            stdout_buffer = stdout_buffer[-4096:]
 
         # Print all chars received before the last \n, if any
-        if '\n' in rx_buffer:
-            parts = rx_buffer.split('\n')
+        if '\n' in stdout_buffer:
+            parts = stdout_buffer.split('\n')
 
             for line in parts[:-1]:
                 _timestamped_print("RX", line)
-            rx_buffer = parts[-1]
+                with external_buffer_lock:
+                    external_buffer.append(line)
+            stdout_buffer = parts[-1]
     except Exception:
         _timestamped_print("RX-hex", data.hex())
 
@@ -159,6 +167,14 @@ def _ble_thread(ble_address, nb_frames_per_second):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(_send_frame(ble_address, nb_frames_per_second))
+
+
+def read_buffer():
+    """Return the lines in the buffer."""
+    with external_buffer_lock:
+        lines = list(external_buffer)
+        external_buffer.clear()
+    return lines
 
 
 def update_frame(new_frame: bytes):

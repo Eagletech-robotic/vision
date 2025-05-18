@@ -68,7 +68,7 @@ def main():
             analyser = Analyser(capture_1, capture_2)
             world, persistent_state = analyser.generate_world(persistent_state)
 
-            debug_board_img = board.draw_interface_debug(capture_1, capture_2, world)
+            debug_board_img = board.draw_interface_debug(capture_1, capture_2, world, ble_robot.read_buffer())
             if debug_mode:
                 board_img = debug_board_img
             else:

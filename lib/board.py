@@ -64,7 +64,7 @@ def draw_interface(team_color, score):
     return img
 
 
-def draw_interface_debug(capture_1, capture_2, world):
+def draw_interface_debug(capture_1, capture_2, world, log_lines):
     img = _draw_common_elements()
 
     mini_width = 800
@@ -76,7 +76,7 @@ def draw_interface_debug(capture_1, capture_2, world):
 
     insert_capture(capture_1.debug_image(), 100, 50)
     insert_capture(capture_2.debug_image(), IMAGE_WIDTH - mini_width - 100, 50)
-    insert_capture(world.debug_image(), (IMAGE_WIDTH - mini_width) // 2, 80 + mini_height)
+    insert_capture(world.debug_image(log_lines), (IMAGE_WIDTH - mini_width) // 2, 80 + mini_height)
 
     return img
 

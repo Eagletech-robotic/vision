@@ -47,9 +47,10 @@ class World:
             bleachers=self.bleachers,
         )
 
-    def debug_image(self):
+    def debug_image(self, log_lines):
         """Generate an image with information about the world"""
         IMG_WIDTH, IMG_HEIGHT = 1920, 1080
+        last_y = 0
 
         def positions(name, detected, x, y, theta):
             return f"{name} X:{x:.3f} Y:{y:.3f} theta:{math.degrees(theta):.0f}°" if detected \
@@ -60,11 +61,18 @@ class World:
 
         # Draw robot position
         txt = positions("Robot", self.robot_detected, self.robot_x, self.robot_y, self.robot_theta)
-        common.draw_text(img, txt, (10, 30))
+        last_y += 30
+        common.draw_text(img, txt, (10, last_y))
 
         # Draw opponent position
         txt = positions("Opponent", self.opponent_detected, self.opponent_x, self.opponent_y,
                         self.opponent_theta)
-        common.draw_text(img, txt, (10, 60))
+        last_y += 30
+        common.draw_text(img, txt, (10, last_y))
+
+        # Insert log lines
+        for line in log_lines:
+            last_y += 30
+            common.draw_text(img, line, (10, last_y))
 
         return img
