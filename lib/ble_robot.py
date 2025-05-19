@@ -56,9 +56,9 @@ def _clean_ansi_and_control(text: str) -> str:
 def _on_packet_received(_, data: bytearray):
     global stdout_buffer
 
-    def _timestamped_print(tag: str, message: str) -> None:
+    def _timestamped(tag: str, message: str) -> None:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        print(f"[{timestamp}] [{tag}] {message}", flush=True)
+        return f"[{timestamp}] [{tag}] {message}"
 
     try:
         chunk = data.decode("ascii", errors="replace")
@@ -73,12 +73,16 @@ def _on_packet_received(_, data: bytearray):
             parts = stdout_buffer.split('\n')
 
             for line in parts[:-1]:
-                _timestamped_print("RX", line)
+                line_with_time = _timestamped("RX", line)
+                print(line_with_time, flush=True)
                 with external_buffer_lock:
-                    external_buffer.append(line)
+                    external_buffer.append(line_with_time)
             stdout_buffer = parts[-1]
     except Exception:
-        _timestamped_print("RX-hex", data.hex())
+        line_with_time = _timestamped("RX-hex", data.hex())
+        print(line_with_time, flush=True)
+        with external_buffer_lock:
+            external_buffer.append(line_with_time)
 
 
 async def _is_device_connected(ble_address):
