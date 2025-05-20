@@ -46,14 +46,15 @@ def main():
     screen, clock = init_pygame()
     image_logger = ImageLogger()
 
-    ble_robot.start_ble_thread(ble_robot.MacAddress.ROBOT, nb_frames_per_second=5)
+    ble_robot.start_ble_thread(ble_robot.MacAddress.TEST_BOARD)
 
     try:
         persistent_state = PersistentState()
-
         running = True
         debug_mode = False
+
         while running:
+            # Check for events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -63,30 +64,38 @@ def main():
                     if event.key == pygame.K_d:
                         debug_mode = not debug_mode
 
+            # Capture images
             capture_1 = stream_1.capture()
             capture_2 = stream_2.capture()
+
+            # Analyse camera frames
             analyser = Analyser(capture_1, capture_2)
             world, persistent_state = analyser.generate_world(persistent_state)
 
+            # Send Bluetooth frame as quickly as possible after capture
+            frame = eagle_packet.frame_payload(
+                world.to_eagle_packet()
+            )
+            ble_robot.send_frame(frame)
+            print("Sending frame:", frame.hex())
+            # print(f"Sent frame: {frame.hex()} {eagle_packet.frame_to_human(frame)}")
+
+            # Draw the UI while the packet is being sent in the background
             debug_board_img = board.draw_interface_debug(capture_1, capture_2, world, ble_robot.read_buffer())
             if debug_mode:
                 board_img = debug_board_img
             else:
                 board_img = board.draw_interface(world.team_color, world.score)
             show_cv_image(screen, board_img)
+
+            # Save logs
             image_logger.append(debug_board_img)
 
-            # Send Bluetooth frame
-            frame = eagle_packet.frame_payload(
-                world.to_eagle_packet()
-            )
-            ble_robot.update_frame(frame)
-            print(f"Enqueue frame: {frame.hex()} {eagle_packet.frame_to_human(frame)}")
-
-            clock.tick(3)  # FPS
+            clock.tick(1)  # FPS
 
     except KeyboardInterrupt:
         print("User interrupted the program.")
+
     finally:
         pygame.quit()
         print("Cleaning up...")
