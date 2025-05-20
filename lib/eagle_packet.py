@@ -6,7 +6,7 @@ import math
 # Constants that match the C++ / TS implementations
 # ----------------------------------------------------------------------
 PAYLOAD_LEN = 109  # payload only (no starter / checksum)
-FRAME_LEN = 130  # 0xFF + payload + checksum
+FRAME_LEN = PAYLOAD_LEN + 2  # 0xFF + payload + checksum
 MAX_OBJECTS = 60
 
 
