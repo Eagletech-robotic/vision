@@ -25,7 +25,7 @@ def _bits_to_bytes(bits: List[int]) -> bytes:
     for idx, bit in enumerate(bits):
         if bit:
             out[idx >> 3] |= 1 << (idx & 7)
-    # pad up to 128 bytes
+    # pad up to fixed payload length (zeros)
     if len(out) < PAYLOAD_LEN:
         out.extend(b"\x00" * (PAYLOAD_LEN - len(out)))
     return bytes(out)
@@ -40,7 +40,8 @@ def build_payload(
         robot_pose: Tuple[float, float, float],  # x, y, theta_rad
         opponent_detected: bool,
         opponent_pose: Tuple[float, float, float],  # x, y, theta_rad
-        bleachers: List[Tuple[float, float, float]],  # list[(x, y, theta_rad)]
+        bleachers: List[Tuple[float, float, float]],  # additional bleachers (not on defaults)
+        initial_bleachers_bits: List[int] | None = None,
 ) -> bytes:
     """
     Build the 128‑byte Eagle payload (no starter / checksum).
@@ -79,18 +80,26 @@ def build_payload(
     _push_bits(bits, to_cm(opponent_pose[1]), 8)
     _push_bits(bits, to_deg(opponent_pose[2]) & 0x1FF, 9)
 
-    # Truncate list before encoding the count so that the encoded value is consistent
-    bleachers = bleachers[:MAX_OBJECTS]  # cap at 60
-    _push_bits(bits, len(bleachers), 6)  # object_count
-    _push_bits(bits, 0, 3)  # padding bits 61-63
+    # ---- initial bleachers bits (10) --------------------------------------
+    if initial_bleachers_bits is None:
+        initial_bleachers_bits = [0] * 10
+    if len(initial_bleachers_bits) != 10 or any(b not in (0, 1) for b in initial_bleachers_bits):
+        raise ValueError("initial_bleachers_bits must be a list of 10 binary values")
+    for b in initial_bleachers_bits:
+        _push_bits(bits, b, 1)
+
+    # ---- object count & padding ---------------------------------------
+    bleachers = bleachers[:MAX_OBJECTS]
+    _push_bits(bits, len(bleachers), 6)  # object_count (bits65‑70)
+    _push_bits(bits, 0, 1)  # padding bit71
 
     # ───────── objects ───────────────────────────────────────────────
     for x, y, theta_rad in bleachers:
-        _push_bits(bits, 0, 2)  # type 0 = Bleacher
-        raw_x = round(to_cm(x) * 63 / 300) & 0x3F
-        raw_y = round(to_cm(y) * 31 / 200) & 0x1F
-        _push_bits(bits, raw_x, 6)
-        _push_bits(bits, raw_y, 5)
+        _push_bits(bits, 0, 2)  # type 0 (Bleacher)
+        raw_x = round(to_cm(x) * 255 / 300) & 0xFF  # 8 bits
+        raw_y = round(to_cm(y) * 127 / 200) & 0x7F  # 7 bits
+        _push_bits(bits, raw_x, 8)
+        _push_bits(bits, raw_y, 7)
         _push_bits(bits, round((to_deg(theta_rad) % 180) / 30) & 0x7, 3)
 
     return _bits_to_bytes(bits)  # exactly 128 bytes
@@ -112,7 +121,7 @@ def frame_payload(payload: bytes) -> bytes:
 # Pretty‑printer / decoder  (debug & logging aid)
 # ----------------------------------------------------------------------
 def _bits_from_payload(payload: bytes) -> List[int]:
-    """Expand 128‑byte payload into an LSB‑first bit list."""
+    """Expand payload into an LSB‑first bit list."""
     bits: List[int] = []
     for byte in payload:
         for i in range(8):
@@ -156,17 +165,18 @@ def frame_to_human(frame: bytes) -> str:
     opp_y_cm = _pop(bits, 8)
     opp_theta_deg = _pop(bits, 9)
 
+    initial_bleachers = [_pop(bits, 1) for _ in range(10)]
     obj_count = _pop(bits, 6)
-    _pop(bits, 3)  # padding
+    _pop(bits, 1)  # padding
 
     objects = []
     for _ in range(obj_count):
         o_type_raw = _pop(bits, 2)
-        raw_x = _pop(bits, 6)
-        raw_y = _pop(bits, 5)
+        raw_x = _pop(bits, 8)
+        raw_y = _pop(bits, 7)
         raw_theta = _pop(bits, 3)
-        x_cm = round(raw_x * 300 / 63)
-        y_cm = round(raw_y * 200 / 31)
+        x_cm = round(raw_x * 300 / 255)
+        y_cm = round(raw_y * 200 / 127)
         theta = raw_theta * 30
         o_type = ["Bleacher", "Plank", "Can"][o_type_raw]
         objects.append((o_type, x_cm, y_cm, theta))
@@ -179,7 +189,8 @@ def frame_to_human(frame: bytes) -> str:
         f"  Robot   (cm,deg)      : x={robot_x_cm}, y={robot_y_cm}, theta={robot_theta_deg}",
         f"  Opponent detected     : {opponent_detected}",
         f"  Opponent(cm,deg)      : x={opp_x_cm}, y={opp_y_cm}, theta={opp_theta_deg}",
-        f"  Objects ({obj_count})",
+        f"  Initial bleachers bits: {''.join(str(b) for b in initial_bleachers)}",
+        f"  Objects ({obj_count})"
     ]
     for i, (typ, x, y, th) in enumerate(objects):
         lines.append(f"    {i:02d}  {typ:<8} x={x:3d}  y={y:3d}  θ={th:3d}")

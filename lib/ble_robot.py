@@ -28,7 +28,7 @@ class MacAddress:
 
 
 CHARACTERISTIC_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
-FRAME_LENGTH = 130  # Length of the frame to be sent (in bytes)
+FRAME_LENGTH = 111  # Length of the frame to be sent (in bytes)
 BLEAK_TIMEOUT = 10.0  # Timeout for BLE operations (in seconds)
 
 # Shared frame and lock for thread safety
