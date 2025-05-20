@@ -22,12 +22,14 @@ def test_manual_bit_pattern_one_object():
             0b10110110,
             0b10000000,
             0b10000001,
-            0b10010110,
+            0b00010110,
             0b00000000,
-            0b00001100,
-            0b01000101,
+            0b00000010,
+            0b00110000,
+            0b01010000,
+            0b00000100,
         ]
-    ) + b"\x00" * (128 - 10)
+    ) + b"\x00" * (109 - 12)
 
     # Build the same payload with the Python encoder
     generated_payload = build_payload(
@@ -39,7 +41,7 @@ def test_manual_bit_pattern_one_object():
         opponent_detected=True,
     )
 
-    # The encoder should produce exactly the same 128-byte payload.
+    # The encoder should produce exactly the same 109-byte payload.
     assert generated_payload == reference_payload, (
         "Encoded payload does not match the reference bit pattern from "
         "test_eagle_packet.cpp"
