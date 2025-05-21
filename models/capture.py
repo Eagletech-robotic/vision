@@ -3,12 +3,13 @@ import cv2 as cv
 
 
 class Capture:
-    def __init__(self, stream, image):
+    def __init__(self, stream, image, time=None):
         self.camera_index = stream.camera_index
         self.camera_matrix = stream.camera_matrix
         self.dist_coeffs = stream.dist_coeffs
 
         self.image = image
+        self.time = time
 
         self.last_pose = None
         self.last_detection = None

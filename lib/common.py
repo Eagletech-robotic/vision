@@ -1,4 +1,5 @@
 import cv2 as cv
+from datetime import datetime
 
 
 def run_hw_diagnostics():
@@ -79,3 +80,9 @@ def normalize_angle(angle):
     if angle >= 180:
         angle -= 360
     return angle
+
+
+def format_time(time: datetime, message: str) -> str:
+    """Format a timestamp with a message in the standard format."""
+    ts = time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    return f"[{ts}] {message}"

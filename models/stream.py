@@ -1,5 +1,6 @@
 from lib import camera, common
 from models.capture import Capture
+from datetime import datetime
 
 
 class Stream:
@@ -16,5 +17,5 @@ class Stream:
             print(f"Error capturing image from camera {self.camera_index}")
             exit(1)
 
-        # common.show_in_window(f"Stream {self.camera_index}", image)
-        return Capture(self, image)
+        time = datetime.now()
+        return Capture(self, image, time)

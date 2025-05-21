@@ -6,6 +6,7 @@ import subprocess
 import re
 from datetime import datetime
 from collections import deque
+from lib import common
 
 
 # To check reception of the data:
@@ -47,7 +48,7 @@ _sending = False  # True while a BLE write is running
 _state_lock = threading.Lock()
 
 _stdout_buffer = ""
-_external_buffer = deque(maxlen=1024)
+_external_buffer = deque(maxlen=1024)  # Stores [timestamp, message] pairs
 _external_lock = threading.Lock()
 
 
@@ -65,9 +66,9 @@ def _clean_ansi_and_control(text: str) -> str:
     return ''.join(c for c in text if ord(c) >= 32 or c in '\n\r')
 
 
-def _timestamped(tag: str, msg: str) -> str:
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    return f"[{ts}] [{tag}] {msg}"
+def _timestamped(tag: str, msg: str) -> tuple[datetime, str]:
+    time = datetime.now()
+    return time, common.format_time(time, f"[{tag}] {msg}")
 
 
 # --------------------------------------------------------------------------- #
@@ -89,17 +90,17 @@ def _on_packet_received(_, data: bytearray):
         if '\n' in _stdout_buffer:
             parts = _stdout_buffer.split('\n')
             for line in parts[:-1]:
-                line_with_time = _timestamped("RX", line)
-                print(line_with_time, flush=True)
+                time, formatted_line = _timestamped("RX", line)
+                print(formatted_line, flush=True)
                 with _external_lock:
-                    _external_buffer.append(line_with_time)
+                    _external_buffer.append((time, formatted_line))
             _stdout_buffer = parts[-1]
 
     except Exception:
-        line_with_time = _timestamped("RX-hex", data.hex())
-        print(line_with_time, flush=True)
+        time, formatted_line = _timestamped("RX-hex", data.hex())
+        print(formatted_line, flush=True)
         with _external_lock:
-            _external_buffer.append(line_with_time)
+            _external_buffer.append((time, formatted_line))
 
 
 # --------------------------------------------------------------------------- #
@@ -250,7 +251,8 @@ def send_frame(frame: bytes):
 
 def read_buffer():
     """
-    Return and clear text received from the robot.
+    Return and clear time-message pairs received from the robot.
+    Each entry is a tuple of (datetime, formatted_message)
     """
     with _external_lock:
         lines = list(_external_buffer)

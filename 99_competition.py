@@ -1,5 +1,6 @@
 import pygame
 import cv2 as cv
+from datetime import datetime
 
 from lib import board, eagle_packet, camera, common, ble_robot
 from lib.image_logger import ImageLogger
@@ -46,7 +47,7 @@ def main():
     screen, clock = init_pygame()
     image_logger = ImageLogger()
 
-    ble_robot.start_ble_thread(ble_robot.MacAddress.TEST_BOARD)
+    ble_robot.start_ble_thread(ble_robot.MacAddress.ROBOT)
 
     try:
         persistent_state = PersistentState()
@@ -76,12 +77,25 @@ def main():
             frame = eagle_packet.frame_payload(
                 world.to_eagle_packet()
             )
+            
+            # Send the frame
+            send_time = datetime.now()
             ble_robot.send_frame(frame)
-            print("Sending frame:", frame.hex())
-            # print(f"Sent frame: {frame.hex()} {eagle_packet.frame_to_human(frame)}")
-
+            print("Send packet:", frame.hex())
+            
+            # Create log entries with timestamps
+            log_entries = [
+                (capture_1.time, common.format_time(capture_1.time, f"Capture 1")),
+                (capture_2.time, common.format_time(capture_2.time, f"Capture 2")),
+                (send_time, common.format_time(send_time, f"Send packet"))
+            ]
+            
+            # Get robot logs and combine with our logs
+            robot_logs = ble_robot.read_buffer()
+            all_logs = log_entries + robot_logs
+            
             # Draw the UI while the packet is being sent in the background
-            debug_board_img = board.draw_interface_debug(capture_1, capture_2, world, ble_robot.read_buffer())
+            debug_board_img = board.draw_interface_debug(capture_1, capture_2, world, all_logs)
             if debug_mode:
                 board_img = debug_board_img
             else:

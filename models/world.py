@@ -47,32 +47,39 @@ class World:
             bleachers=self.bleachers,
         )
 
-    def debug_image(self, log_lines):
+    def debug_image(self, log_entries):
         """Generate an image with information about the world"""
         IMG_WIDTH, IMG_HEIGHT = 1920, 1080
+        INTERLINE = 30
         last_y = 0
 
+        def interline(factor=1.0):
+            nonlocal last_y
+            last_y += int(INTERLINE * factor)
+
         def positions(name, detected, x, y, theta):
-            return f"{name} X:{x:.3f} Y:{y:.3f} theta:{math.degrees(theta):.0f}°" if detected \
+            return f"{name} X: {x:.3f} Y: {y:.3f} theta: {math.degrees(theta):.0f}" if detected \
                 else f"{name} not detected"
 
         # Create black image
         img = np.zeros((IMG_HEIGHT, IMG_WIDTH, 3), dtype=np.uint8)
 
+        # Sort log entries by time and display them
+        sorted_entries = sorted(log_entries, key=lambda entry: entry[0])
+        for _, line in sorted_entries:
+            interline()
+            common.draw_text(img, line, (10, last_y))
+
         # Draw robot position
+        interline(0.5)
         txt = positions("Robot", self.robot_detected, self.robot_x, self.robot_y, self.robot_theta)
-        last_y += 30
+        interline()
         common.draw_text(img, txt, (10, last_y))
 
         # Draw opponent position
         txt = positions("Opponent", self.opponent_detected, self.opponent_x, self.opponent_y,
                         self.opponent_theta)
-        last_y += 30
+        interline()
         common.draw_text(img, txt, (10, last_y))
-
-        # Insert log lines
-        for line in log_lines:
-            last_y += 30
-            common.draw_text(img, line, (10, last_y))
 
         return img
