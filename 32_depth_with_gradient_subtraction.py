@@ -22,6 +22,7 @@ cv.namedWindow("Depth – objects only", cv.WINDOW_NORMAL)
 cv.namedWindow("Frame + picks",       cv.WINDOW_NORMAL)
 
 while True:
+    cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
     ret, frame = cap.read()
     if not ret:
         break

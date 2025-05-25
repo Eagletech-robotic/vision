@@ -69,6 +69,7 @@ def main():
 
     while True:
         # Take a picture of a chessboard and find corners
+        cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
         _, image = cap.read()
         shape = image.shape[:2]
         # image = cv.resize(image, (1280, 720))

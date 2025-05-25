@@ -19,6 +19,7 @@ def main():
     camera_matrix, dist_coeffs = camera.load_calibration(camera_index)
 
     # Calculate the new camera matrix
+    cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
     _, image = cap.read()
     h, w = image.shape[:2]
     new_camera_matrix, _roi = cv.getOptimalNewCameraMatrix(camera_matrix, dist_coeffs, (w, h), 1, (w, h))
@@ -28,6 +29,7 @@ def main():
 
     while True:
         # Capture an image and draw a rectangle to assess the distortion
+        cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
         _, image = cap.read()
         cv.rectangle(image, (50, 50), (image.shape[1] - 50, image.shape[0] - 50), (0, 255, 0), 4)
 

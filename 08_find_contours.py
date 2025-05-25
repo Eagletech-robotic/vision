@@ -12,6 +12,7 @@ def main():
     camera_matrix, dist_coeffs = camera.load_calibration(camera_index)
 
     while True:
+        cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
         _, image = cap.read()
 
         edges = cv.cvtColor(image, cv.COLOR_BGR2GRAY)

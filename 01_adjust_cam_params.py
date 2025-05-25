@@ -64,6 +64,7 @@ def main():
 
     print("\nPress 'q' to quit, 's' to save parameters.\n")
     while True:
+        cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
         ret, frame = cap.read()
         process_image(frame, aruco_detector)
         c = cv.waitKey(1000 // FRAMES_PER_SEC)

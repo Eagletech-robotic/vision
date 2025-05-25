@@ -14,6 +14,7 @@ cap = camera.capture(camera_index)
 camera.load_properties(cap, camera_index)
 
 while True:
+    cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
     ret, frame = cap.read()
     if not ret:
         print("Failed to grab frame")

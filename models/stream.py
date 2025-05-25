@@ -12,10 +12,14 @@ class Stream:
         self.camera_matrix, self.dist_coeffs = camera.load_calibration(camera_index)
 
     def capture(self):
+        time = datetime.now()
+
+        # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
+        self.cap.grab()
+
         ret, image = self.cap.read()
         if not ret:
             print(f"Error capturing image from camera {self.camera_index}")
             exit(1)
 
-        time = datetime.now()
         return Capture(self, image, time)

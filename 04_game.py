@@ -58,6 +58,7 @@ def main():
 
     while running:
         # Take a picture and detect ArUco markers
+        cap.grab() # Evict any stale images from the one-image buffer (CAP_PROP_BUFFERSIZE=1)
         ret, image = cap.read()
         corners, ids, rejected = aruco_detector.detectMarkers(image)
         detection.draw_aruco_markers(image, corners, ids)
