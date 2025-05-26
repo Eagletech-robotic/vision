@@ -3,6 +3,7 @@ import cv2 as cv
 from datetime import datetime
 
 from lib import board, eagle_packet, camera, common, ble_robot
+from lib.eagle_packet import frame_to_human
 from lib.image_logger import ImageLogger
 from models.analyser import Analyser
 from models.persistent_state import PersistentState
@@ -77,7 +78,8 @@ def main():
             frame = eagle_packet.frame_payload(
                 world.to_eagle_packet()
             )
-            
+            # print(frame_to_human(frame))
+
             # Send the frame
             send_time = datetime.now()
             ble_robot.send_frame(frame)
