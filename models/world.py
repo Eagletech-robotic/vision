@@ -32,7 +32,8 @@ class World:
         self.opponent_y: float = 0.0
         self.opponent_theta: float = 0.0
 
-        self.bleachers = BLEACHERS_DEFAULT
+        self.initial_bleachers = [1] * 10
+        self.bleachers = []
 
     def to_eagle_packet(self):
         robot_pose = (self.robot_x, self.robot_y, self.robot_theta) if self.robot_detected else None
@@ -45,6 +46,7 @@ class World:
             opponent_detected=self.opponent_detected,
             opponent_pose=opponent_pose or (0.0, 0.0, 0.0),
             bleachers=self.bleachers,
+            initial_bleachers_bits=self.initial_bleachers,
         )
 
     def debug_image(self, log_entries):
