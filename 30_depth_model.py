@@ -5,7 +5,7 @@ import cv2 as cv
 from lib import common, camera
 from lib.depth_estimator import DepthEstimator
 
-use_xpu = True # Set to True Intel Arc
+use_xpu = False # Set to True for Intel Arc
 
 if use_xpu:
     torch.xpu.set_device(0)

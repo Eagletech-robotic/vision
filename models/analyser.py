@@ -17,6 +17,7 @@ class Analyser:
         world = World()
         world.score = persistent_state.score or 0
         world.team_color = self._find_team_color() or persistent_state.team_color
+        persistent_state.team_color = world.team_color
 
         # --- our robot ----------------------------------------------------
         robot_pose = self._calculate_pose(vision.OUR_ROBOT_MARKERS)
@@ -144,7 +145,7 @@ class Analyser:
             pose[2][0] for capture in [self.capture_1, self.capture_2]
             if (pose := capture.estimate_pose()) is not None
         ]
-        if x_values:
+        if len(x_values) == 2:
             return "blue" if np.mean(x_values) > 1.5 else "yellow"
         return None
 
