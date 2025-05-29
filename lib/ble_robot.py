@@ -193,7 +193,7 @@ async def _send_payload_async(payload: bytes):
         for off in range(0, len(payload), chunk_size):
             await asyncio.wait_for(
                 ble_client.write_gatt_char(rx_char, payload[off:off+chunk_size], response=False),
-                timeout=0.5
+                timeout=0.1
             )
     except asyncio.TimeoutError:
         print("BLE write timeout!")
