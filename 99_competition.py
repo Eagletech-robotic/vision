@@ -124,7 +124,7 @@ def main():
             # Save logs
             image_logger.append(debug_board_img)
 
-            clock.tick(2)  # FPS
+            clock.tick(6)  # FPS
 
     except KeyboardInterrupt:
         print("User interrupted the program.")
