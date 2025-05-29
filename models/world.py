@@ -3,19 +3,6 @@ import numpy as np
 
 from lib import eagle_packet, common
 
-BLEACHERS_DEFAULT = [
-    (0.075, 0.400, 0.0),
-    (0.075, 1.325, 0.0),
-    (0.775, 0.250, math.pi / 2),
-    (0.825, 1.725, math.pi / 2),
-    (1.100, 0.950, math.pi / 2),
-    (3.0 - 0.075, 0.400, 0.0),
-    (3.0 - 0.075, 1.325, 0.0),
-    (3.0 - 0.775, 0.250, math.pi / 2),
-    (3.0 - 0.825, 1.725, math.pi / 2),
-    (3.0 - 1.100, 0.950, math.pi / 2),
-]
-
 
 class World:
     def __init__(self):
@@ -32,9 +19,6 @@ class World:
         self.opponent_y: float = 0.0
         self.opponent_theta: float = 0.0
 
-        self.initial_bleachers = [1] * 10
-        self.bleachers = []
-
     def to_eagle_packet(self):
         robot_pose = (self.robot_x, self.robot_y, self.robot_theta) if self.robot_detected else None
         opponent_pose = (self.opponent_x, self.opponent_y, self.opponent_theta) if self.opponent_detected else None
@@ -45,8 +29,6 @@ class World:
             robot_pose=robot_pose or (0.0, 0.0, 0.0),
             opponent_detected=self.opponent_detected,
             opponent_pose=opponent_pose or (0.0, 0.0, 0.0),
-            bleachers=self.bleachers,
-            initial_bleachers_bits=self.initial_bleachers,
         )
 
     def debug_image(self, log_entries):
