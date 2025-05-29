@@ -1,6 +1,9 @@
 import pygame
 import cv2 as cv
 from datetime import datetime
+import signal
+import sys
+import traceback
 
 from lib import board, eagle_packet, camera, common, ble_robot
 from lib.eagle_packet import frame_to_human
@@ -11,6 +14,14 @@ from models.stream import Stream
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
 CAMERA_NAME = "W4DS--SN0001"
+
+
+def dump_threads(signum, frame):
+    print("\n\n=== STACK DUMP ===")
+    for thread_id, frame in sys._current_frames().items():
+        print(f"\n--- Thread {thread_id} ---")
+        traceback.print_stack(frame)
+    print("=== END STACK DUMP ===\n")
 
 
 def init_streams():
@@ -42,6 +53,9 @@ def show_cv_image(screen, cv_image):
 
 
 def main():
+    # If the process is stuck, run `kill -USR1 <pid>` to dump the thread stack
+    signal.signal(signal.SIGUSR1, dump_threads)
+
     common.run_hw_diagnostics()
     stream_1, stream_2 = init_streams()
 
@@ -83,19 +97,22 @@ def main():
             # Send the frame
             send_time = datetime.now()
             ble_robot.send_frame(frame)
-            print("Send packet:", frame.hex())
-            
+            print("Packet set for transmission:", frame.hex())
+            print(f"BLE Status: client={ble_robot.ble_client is not None}, "
+                  f"sending={ble_robot._sending}, "
+                  f"pending={ble_robot._pending_frame is not None}")
+
             # Create log entries with timestamps
             log_entries = [
                 (capture_1.time, common.format_time(capture_1.time, f"Capture 1")),
                 (capture_2.time, common.format_time(capture_2.time, f"Capture 2")),
                 (send_time, common.format_time(send_time, f"Send packet"))
             ]
-            
+
             # Get robot logs and combine with our logs
             robot_logs = ble_robot.read_buffer()
             all_logs = log_entries + robot_logs
-            
+
             # Draw the UI while the packet is being sent in the background
             debug_board_img = board.draw_interface_debug(capture_1, capture_2, world, all_logs)
             if debug_mode:
