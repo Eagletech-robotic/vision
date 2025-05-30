@@ -16,11 +16,11 @@ class Analyser:
     def generate_world(self, persistent_state):
         world = World()
         world.score = persistent_state.score or 0
-        world.team_color = self._find_team_color() or persistent_state.team_color
+        world.team_color = self._find_team_color(persistent_state) or persistent_state.team_color
         persistent_state.team_color = world.team_color
 
         # --- our robot ----------------------------------------------------
-        robot_pose = self._calculate_pose(vision.OUR_ROBOT_MARKERS)
+        robot_pose = self._calculate_pose(vision.OUR_ROBOT_MARKERS, persistent_state)
         if robot_pose:
             world.robot_detected = True
             world.robot_x, world.robot_y, world.robot_theta, rmse = robot_pose
@@ -29,7 +29,7 @@ class Analyser:
         # --- opponent robot ----------------------------------------------
         if world.team_color:
             opponent_pose = self._calculate_pose(
-                self._opponent_marker_lookup(world.team_color)
+                self._opponent_marker_lookup(world.team_color), persistent_state
             )
             if opponent_pose:
                 world.opponent_detected = True
@@ -55,7 +55,7 @@ class Analyser:
             )
         return opponent_corners
 
-    def _calculate_pose(self, marker_lookup):
+    def _calculate_pose(self, marker_lookup, persistent_state):
         """
         General 2-D rigid fit for any set of tags.
 
@@ -67,7 +67,7 @@ class Analyser:
         field_frame_points = []
 
         for capture in [self.capture_1, self.capture_2]:
-            ret = self._pose_corner_ids_from_capture(capture)
+            ret = self._pose_corner_ids_from_capture(capture, persistent_state)
             if ret is None:
                 continue
             rvec, tvec, corners, ids = ret
@@ -140,17 +140,19 @@ class Analyser:
     # ------------------------------------------------------------------ #
     #  misc helpers
     # ------------------------------------------------------------------ #
-    def _find_team_color(self):
-        x_values = [
-            pose[2][0] for capture in [self.capture_1, self.capture_2]
-            if (pose := capture.estimate_pose()) is not None
-        ]
+    def _find_team_color(self, persistent_state):
+        x_values = []
+        for capture in [self.capture_1, self.capture_2]:
+            pose = self._get_pose_with_fallback(capture, persistent_state)
+            if pose is not None:
+                x_values.append(pose[2][0])
+
         if len(x_values) == 2:
             return "blue" if np.mean(x_values) > 1.5 else "yellow"
         return None
 
-    def _pose_corner_ids_from_capture(self, capture):
-        pose = capture.estimate_pose()
+    def _pose_corner_ids_from_capture(self, capture, persistent_state):
+        pose = self._get_pose_with_fallback(capture, persistent_state)
         if pose is None:
             return None
         rvec, tvec = pose[:2]
@@ -160,3 +162,20 @@ class Analyser:
             return None
 
         return rvec, tvec, corners, ids
+
+    def _get_pose_with_fallback(self, capture, persistent_state):
+        """
+        Get pose from capture, falling back to memorized pose if needed.
+        Updates memorized pose when a new valid pose is obtained.
+
+        Returns: pose tuple (rvec, tvec, pos, euler) or None
+        """
+        pose = capture.estimate_pose()
+        if pose is None:
+            # Use last memorized pose for this camera if available
+            pose = persistent_state.camera_poses.get(capture.camera_index)
+        else:
+            # Store/update the reliable pose
+            persistent_state.camera_poses[capture.camera_index] = pose
+
+        return pose

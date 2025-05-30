@@ -27,9 +27,20 @@ class Capture:
         if self.last_pose is not None:
             return self.last_pose
 
+        # Return None unless we have 2 markers
         corners, ids = self._detection()
-        if ids is None or len(ids) == 0:
-            return
+        if ids is None:
+            return None
+
+        field_marker_ids = set(vision.FIELD_MARKERS.keys())
+        detected_field_markers = set()
+        for id_array in ids:
+            marker_id = int(id_array[0])
+            if marker_id in field_marker_ids:
+                detected_field_markers.add(marker_id)
+
+        if len(detected_field_markers) < 2:
+            return None
 
         ret, rvec, tvec = \
             vision.estimate_pose(corners, ids, vision.FIELD_MARKERS, self.camera_matrix, self.dist_coeffs)
